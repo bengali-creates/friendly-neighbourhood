@@ -1,26 +1,79 @@
 @import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Anton&family=Archivo+Black&family=Bangers&family=Inter:wght@400;500;600;700&display=swap');
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Spider-Verse Palette */
+  --sv-ink:     #0B0714;
+  --sv-paper:   #F2EBDC;
+  --sv-magenta: #FF2E63;
+  --sv-cyan:    #00E5FF;
+  --sv-yellow:  #FFD400;
+  --sv-purple:  #7B2FF7;
+
+  /* Theme Defaults */
+  --background: var(--sv-ink);
+  --foreground: var(--sv-paper);
+
+  /* Shadows */
+  --sv-shadow-sm: 3px 3px 0 var(--sv-ink);
+  --sv-shadow-md: 6px 6px 0 var(--sv-ink);
+  --sv-shadow-lg: 10px 10px 0 var(--sv-ink);
+
+  /* Gutters */
+  --sv-gutter: 16px;
+
+  /* Typography */
+  --font-display: 'Archivo Black', 'Anton', sans-serif;
+  --font-body:    'Inter', system-ui, sans-serif;
+  --font-ono:     'Bangers', cursive;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+[data-theme="light"] {
+  --background: var(--sv-paper);
+  --foreground: var(--sv-ink);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-body);
+  position: relative;
+  min-height: 100vh;
+}
+
+/* Newsprint SVG Noise Overlay */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* Spider-Verse Custom Utility Classes */
+.comic-panel {
+  border: 2px solid var(--sv-ink);
+  box-shadow: var(--sv-shadow-md);
+  background: var(--background);
+  padding: var(--sv-gutter);
+}
+
+.caption-box {
+  background: var(--sv-yellow);
+  color: var(--sv-ink);
+  border: 2px solid var(--sv-ink);
+  box-shadow: var(--sv-shadow-sm);
+  font-family: var(--font-display);
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  display: inline-block;
+}
+
+.onomatopoeia {
+  font-family: var(--font-ono);
+  color: var(--sv-magenta);
+  text-shadow: 3px 3px 0 var(--sv-ink);
 }
