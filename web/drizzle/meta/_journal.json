@@ -8,6 +8,20 @@
       "when": 1787151773086,
       "tag": "0000_outstanding_chamber",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1787401901059,
+      "tag": "0001_typical_wendigo",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1787433229980,
+      "tag": "0002_sour_living_mummy",
+      "breakpoints": true
     }
   ]
 }
