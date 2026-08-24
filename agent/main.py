@@ -205,16 +205,22 @@ async def watch_url(req: WatchRequest):
             "data": result,
         }
 
-      
     try:
-          
-        collector_id = os.getenv("DEFAULT_COLLECTOR_ID", "c_mt4gjw4y2gom7o80b7")
-        print(f"[/watch] Allocated active collector '{collector_id}' for URL: {url}")
+        print(f"[/watch] Creating or retrieving collector for '{url}'...")
+        create_res = await create_scraper(ScraperCreateRequest(
+            url=url,
+            prompt=req.prompt,
+            name=clean_name,
+            source_type=req.source_type
+        ))
+        
+        collector_id = create_res.get("collector_id") if isinstance(create_res, dict) else None
+        if not collector_id:
+            collector_id = os.getenv("DEFAULT_COLLECTOR_ID", "c_mt4gjw4y2gom7o80b7")
+            save_collector(collector_id, clean_name, url, req.source_type)
 
-        save_collector(collector_id, clean_name, url, req.source_type)
-        print(f"[/watch] Successfully registered new watcher '{clean_name}' ({url}) to DB.")
+        print(f"[/watch] Watcher '{clean_name}' ({url}) ready with collector '{collector_id}'.")
 
-          
         async def _run_pipeline_bg():
             try:
                 result = await agent_graph.ainvoke({
@@ -245,7 +251,7 @@ async def watch_url(req: WatchRequest):
             "source": "new_collector",
             "job_id": job_id,
             "collector_id": collector_id,
-            "message": "Scraper initialized and saved to DB. Analysis running in background.",
+            "message": f"Scraper '{collector_id}' initialized and saved to DB. Analysis running in background.",
         }
     except HTTPException:
         raise
