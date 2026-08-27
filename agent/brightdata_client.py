@@ -277,14 +277,31 @@ def get_collector_results(response_id: str, timeout_sec: int = 30) -> dict | lis
 
 def run_collector(collector_id: str, url: str) -> dict | list | None:
     """
-    Run an existing Scraper Studio collector against a URL synchronously.
-    Uses two-step DCA API flow:
-      1. POST /dca/trigger_immediate?collector={collector_id} -> returns response_id
-      2. GET /dca/get_result?response_id={response_id} -> returns actual dataset records!
+    Run an existing Scraper Studio collector against a URL.
+    Tries in order:
+      1. Native Python SDK (`client.scraper_studio.run`)
+      2. Direct REST DCA API (`POST /dca/trigger_immediate` + `GET /dca/get_result`)
+      3. CLI subprocess fallback (`bdata scraper run`)
     """
     token = os.getenv("BRIGHTDATA_API_TOKEN")
 
-      
+    # 1. Native Python SDK execution (brightdata-sdk)
+    if token:
+        try:
+            print(f"[BrightData SDK] Executing scraper_studio.run for '{collector_id}'...")
+            client = get_client()
+            if hasattr(client, "scraper_studio"):
+                res = client.scraper_studio.run(
+                    collector=collector_id,
+                    input={"url": url}
+                )
+                if res and hasattr(res, "data") and res.data:
+                    print(f"[BrightData SDK] scraper_studio.run succeeded!")
+                    return res.data
+        except Exception as sdk_err:
+            print(f"[BrightData SDK] scraper_studio.run exception (falling to REST API): {sdk_err}")
+
+    # 2. HTTP Direct API Two-Step DCA Flow
     if token:
         try:
             endpoint = f"https://api.brightdata.com/dca/trigger_immediate?collector={collector_id}"

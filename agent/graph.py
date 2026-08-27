@@ -112,26 +112,14 @@ def scrape_node(state: AgentState) -> AgentState:
     except Exception as cache_err:
         print(f"[scrape_node] DB cache check failed, falling through to API: {cache_err}")
 
-      
+    # ── Live Scrape via Bright Data SDK / API ─────────────────────────
     print(f"[scrape_node] No fresh cache found — triggering Bright Data for {collector_id}")
     snapshot = None
     try:
         snapshot = run_collector(collector_id, url)
     except Exception as e:
-        print(f"[scrape_node] SDK failed, falling back to CLI: {e}")
-        try:
-            npx_cmd = "npx.cmd" if os.name == "nt" else "npx"
-            result = subprocess.run(
-                [npx_cmd, "-y", "-p", "@brightdata/cli", "bdata", "scraper", "run", collector_id, url],
-                capture_output=True, text=True, timeout=120, shell=(os.name == "nt")
-            )
-            try:
-                snapshot = json.loads(result.stdout)
-            except Exception:
-                snapshot = {"raw_output": result.stdout} if result.stdout.strip() else None
-        except Exception as cli_err:
-            print(f"[scrape_node] CLI fallback also failed: {cli_err}")
-            snapshot = None
+        print(f"[scrape_node] run_collector failed: {e}")
+        snapshot = None
 
     if snapshot:
         try:
