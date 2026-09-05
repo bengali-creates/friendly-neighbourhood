@@ -6,6 +6,9 @@ export const collectors = pgTable("collectors", {
   name: text("name").notNull(),                           
   url: text("url").notNull().unique(),                    
   sourceType: text("source_type").notNull(),              
+  targetSelector: text("target_selector"),
+  lastEtag: text("last_etag"),
+  lastContentHash: text("last_content_hash"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
