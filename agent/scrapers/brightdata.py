@@ -6,8 +6,7 @@ import os
 import json
 import asyncio
 from typing import Optional, Dict, Any
-
-from .engine import ScrapedSnapshot
+from .types import ScrapedSnapshot
 from brightdata_client import run_collector, clean_and_chunk_snapshot, check_dataset_marketplace
 from storage.db import StorageClient
 
@@ -30,7 +29,7 @@ class BrightDataScraper:
 
         if job_id:
             try:
-                StorageClient.update_job_progress(
+                await StorageClient.update_job_progress(
                     job_id=job_id,
                     collector_id=collector_id,
                     url=url,

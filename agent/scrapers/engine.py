@@ -1,19 +1,9 @@
-from typing import TypedDict, Optional, List, Dict, Any
 import os
 import json
+from typing import Optional
+from .types import ScrapedSnapshot
 from .inhouse import InHouseScraper
 from .brightdata import BrightDataScraper
-
-class ScrapedSnapshot(TypedDict, total=False):
-    url: str
-    title: str
-    raw_text: str
-    sections: Dict[str, str]
-    linked_docs: List[Dict[str, Any]]
-    source: str
-    bytes_scraped: int
-    pages_visited: int
-    metadata: Dict[str, Any]
 
 
 class ScraperEngine:
@@ -27,12 +17,14 @@ class ScraperEngine:
         max_link_depth: int = 2,
     ) -> ScrapedSnapshot:
 
+        # Default to inhouse scraper as the primary engine
         configured_default = os.getenv("DEFAULT_SCRAPER_ENGINE", "inhouse").lower()
         active_engine = engine.lower() if engine and engine != "auto" else configured_default
 
-        print(f"[ScraperEngine] Starting scrape for '{url}' with target engine='{active_engine}' (job_id={job_id})")
+        print(f"[ScraperEngine] Starting scrape for '{url}' with primary engine='{active_engine}' (job_id={job_id})")
 
-        if active_engine == "inhouse":
+        # Primary Engine Execution: In-House Playwright + AI semantic parsing
+        if active_engine != "brightdata":
             try:
                 result = await InHouseScraper.scrape(
                     url=url,
@@ -41,18 +33,26 @@ class ScraperEngine:
                     collector_id=collector_id,
                     max_link_depth=max_link_depth,
                 )
-                if result and result.get("raw_text"):
+                if result and result.get("raw_text") and len(result.get("raw_text", "").strip()) > 50:
                     return result
-                print("[ScraperEngine] In-house returned empty/invalid data. Attempting Bright Data fallback...")
+                print("[ScraperEngine] In-house returned low-content data.")
             except Exception as inhouse_err:
-                print(f"[ScraperEngine] In-house scraper error: {inhouse_err}. Falling back to Bright Data...")
-            if collector_id or os.getenv("BRIGHTDATA_API_TOKEN"):
-                return await BrightDataScraper.scrape(
-                    url=url,
-                    collector_id=collector_id,
-                    prompt=prompt,
-                    job_id=job_id,
-                )
+                print(f"[ScraperEngine] In-house scraper error: {inhouse_err}")
+
+            # Optional fallback to Bright Data only if configured and token is present
+            if os.getenv("ENABLE_BRIGHTDATA_FALLBACK", "false").lower() == "true" and (collector_id or os.getenv("BRIGHTDATA_API_TOKEN")):
+                try:
+                    print("[ScraperEngine] Attempting secondary fallback via Bright Data cloud...")
+                    return await BrightDataScraper.scrape(
+                        url=url,
+                        collector_id=collector_id,
+                        prompt=prompt,
+                        job_id=job_id,
+                    )
+                except Exception as bd_fallback_err:
+                    print(f"[ScraperEngine] Bright Data fallback error: {bd_fallback_err}")
+
+        # Explicit Bright Data Engine requested by caller
         elif active_engine == "brightdata":
             try:
                 result = await BrightDataScraper.scrape(
@@ -63,7 +63,6 @@ class ScraperEngine:
                 )
                 if result and result.get("raw_text"):
                     return result
-                print("[ScraperEngine] Bright Data returned empty. Attempting In-house fallback...")
             except Exception as bd_err:
                 print(f"[ScraperEngine] Bright Data error: {bd_err}. Falling back to In-house...")
 

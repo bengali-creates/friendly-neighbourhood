@@ -1,4 +1,5 @@
 """Scraper package for Spider-Sense microservice."""
-from .engine import ScraperEngine, ScrapedSnapshot
+from .types import ScrapedSnapshot
+from .engine import ScraperEngine
 
 __all__ = ["ScraperEngine", "ScrapedSnapshot"]
