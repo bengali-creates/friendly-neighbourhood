@@ -5,6 +5,7 @@ Run with: pytest tests/ -v
 import pytest
 import difflib
 from unittest.mock import patch, MagicMock
+from graph import should_heal
 
 
   
@@ -88,8 +89,6 @@ def test_matcher_rejects_near_miss():
 
 def test_heal_triggered_on_null_snapshot():
     """When validation fails, the heal node should be routed to."""
-    from graph import should_heal
-
     state_failed = {
         "collector_id": "c_test123",
         "snapshot": None,
@@ -100,8 +99,6 @@ def test_heal_triggered_on_null_snapshot():
 
 def test_no_heal_after_3_attempts():
     """After 3 heal attempts, stop trying — proceed to diff."""
-    from graph import should_heal
-
     state_exhausted = {
         "collector_id": "c_test123",
         "snapshot": None,
