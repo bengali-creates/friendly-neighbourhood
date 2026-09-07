@@ -59,3 +59,31 @@ export async function GET(_req: Request, { params }: Params) {
   }
 }
 
+export async function PATCH(req: Request, { params }: Params) {
+  try {
+    const { collectorId } = await params;
+    const body = await req.json();
+    const { target_selector, last_etag, last_content_hash } = body;
+
+    const updates: Record<string, any> = {};
+    if (target_selector !== undefined) updates.targetSelector = target_selector;
+    if (last_etag !== undefined) updates.lastEtag = last_etag;
+    if (last_content_hash !== undefined) updates.lastContentHash = last_content_hash;
+
+    const updated = await db
+      .update(collectors)
+      .set(updates)
+      .where(eq(collectors.collectorId, collectorId))
+      .returning();
+
+    if (updated.length === 0) {
+      return NextResponse.json({ success: false, error: "Collector not found" }, { status: 404 });
+    }
+
+    return NextResponse.json({ success: true, data: updated[0] });
+  } catch (error: any) {
+    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  }
+}
+
+

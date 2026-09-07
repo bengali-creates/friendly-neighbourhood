@@ -47,7 +47,17 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { collector_id, name, url, source_type } = body;
+    const { collector_id, name, url, source_type, target_selector, last_etag, last_content_hash } = body;
+
+    const valuesToSet: Record<string, any> = {
+      collectorId: collector_id,
+      name,
+      url,
+      sourceType: source_type,
+    };
+    if (target_selector !== undefined) valuesToSet.targetSelector = target_selector;
+    if (last_etag !== undefined) valuesToSet.lastEtag = last_etag;
+    if (last_content_hash !== undefined) valuesToSet.lastContentHash = last_content_hash;
 
     const created = await db
       .insert(collectors)
@@ -56,14 +66,13 @@ export async function POST(req: Request) {
         name,
         url,
         sourceType: source_type,
+        targetSelector: target_selector ?? null,
+        lastEtag: last_etag ?? null,
+        lastContentHash: last_content_hash ?? null,
       })
       .onConflictDoUpdate({
         target: collectors.url,
-        set: {
-          collectorId: collector_id,
-          name,
-          sourceType: source_type,
-        },
+        set: valuesToSet,
       })
       .returning();
 
