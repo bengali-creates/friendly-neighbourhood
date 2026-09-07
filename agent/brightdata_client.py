@@ -6,18 +6,42 @@ Authentication: Set BRIGHTDATA_API_TOKEN in agent/.env
 Get your token: https://brightdata.com/cp/api_keys
 """
 import os
+import re
 import json
+import time
+import subprocess
+from html.parser import HTMLParser
 import requests
 from dotenv import load_dotenv
 from brightdata import SyncBrightDataClient
+
+from llm import ask_gemini
 
 load_dotenv()
 
 _client = None
 
 
-import re
-from html.parser import HTMLParser
+
+def run_bdata_cli(cmd_args: list[str], timeout: int = 180) -> str:
+    """Execute Bright Data CLI commands via npx (for provisioning and heal)."""
+    npx_cmd = "npx.cmd" if os.name == "nt" else "npx"
+    full_cmd = [npx_cmd, "-y", "-p", "@brightdata/cli", "bdata"] + cmd_args
+    env = os.environ.copy()
+    process = subprocess.run(
+        full_cmd,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        timeout=timeout,
+        env=env,
+        shell=(os.name == "nt"),
+    )
+    if process.returncode != 0 and process.stderr:
+        print(f"[BrightData CLI]: {process.stderr}")
+    return (process.stdout or "").strip()
+
 
 class MLStripper(HTMLParser):
     def __init__(self):
@@ -81,7 +105,6 @@ def clean_and_chunk_snapshot(raw_snapshot: dict | list | str) -> dict:
         clean_text = raw_str
 
     try:
-        from graph import _ask_gemini
         prompt = f"""You are a document structuring assistant.
 Clean text document:
 {clean_text[:6000]}
@@ -98,7 +121,7 @@ Format:
     "Section Name": "Paragraph content..."
   }}
 }}"""
-        llm_out = _ask_gemini(prompt)
+        llm_out = ask_gemini(prompt)
         json_start = llm_out.find("{")
         json_end = llm_out.rfind("}")
         if json_start != -1 and json_end != -1:
@@ -365,7 +388,6 @@ def run_collector(collector_id: str, url: str) -> dict | list | None:
 
                 if response_id:
                     print(f"[BrightData API] Got response_id '{response_id}'. Polling /dca/get_result...")
-                    import time
                     start_time = time.time()
                     while time.time() - start_time < 90:    
                         results = get_collector_results(response_id, timeout_sec=25)
@@ -382,7 +404,6 @@ def run_collector(collector_id: str, url: str) -> dict | list | None:
       
     try:
         print(f"[BrightData CLI fallback] Running CLI for collector {collector_id} on {url}...")
-        import subprocess
         npx_cmd = "npx.cmd" if os.name == "nt" else "npx"
         res = subprocess.run(
             [npx_cmd, "-y", "-p", "@brightdata/cli", "bdata", "scraper", "run", collector_id, url],
