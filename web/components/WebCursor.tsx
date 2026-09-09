@@ -3,6 +3,8 @@
 import React, { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 
+import { usePathname } from "next/navigation";
+
 interface Particle {
   id: number;
   x: number;
@@ -18,6 +20,9 @@ interface WebShot {
 }
 
 export function WebCursor() {
+  const pathname = usePathname();
+  const isLandingPage = pathname === "/" || pathname === "";
+
   const spriteRef = useRef<HTMLDivElement>(null);
   const posRef = useRef({ x: -200, y: -200 });
   const rafRef = useRef<number>(0);
@@ -26,6 +31,7 @@ export function WebCursor() {
   const [particles, setParticles] = useState<Particle[]>([]);
 
   useEffect(() => {
+    if (isLandingPage) return;
       
     const loop = () => {
       if (spriteRef.current) {
@@ -69,7 +75,11 @@ export function WebCursor() {
       window.removeEventListener("mousemove", onMove);
       window.removeEventListener("mousedown", onDown);
     };
-  }, []);
+  }, [isLandingPage]);
+
+  if (isLandingPage) {
+    return null;
+  }
 
   return (
     <div
