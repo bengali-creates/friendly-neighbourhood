@@ -152,7 +152,7 @@ export function HeroSection() {
             className="flex flex-wrap items-center gap-4 pt-2"
           >
             <Link
-              href="/signup"
+              href="/login?mode=signup"
               className="cta-slide group relative inline-flex items-center justify-center px-7 py-3.5 rounded-xl font-medium text-sm text-[#08060D] bg-[var(--signal)] shadow-[0_0_25px_rgba(0,229,255,0.4)] hover:shadow-[0_0_35px_rgba(0,229,255,0.7)] transition-all cursor-pointer"
             >
               <span className="relative z-10 font-mono font-semibold tracking-wider uppercase text-xs flex items-center gap-2">

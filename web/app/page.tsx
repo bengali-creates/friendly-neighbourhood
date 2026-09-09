@@ -1,5 +1,5 @@
-import EpicSpiderLandingPage from "@/components/EpicSpiderLandingPage";
+import MarketingLandingPage from "./(marketing)/page";
 
 export default function Home() {
-  return <EpicSpiderLandingPage />;
+  return <MarketingLandingPage />;
 }

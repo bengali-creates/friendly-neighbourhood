@@ -143,7 +143,7 @@ export function CommandDeck() {
         <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4 relative z-20">
           <Link
             ref={buttonRef}
-            href="/signup"
+            href="/login?mode=signup"
             className="cta-slide group relative inline-flex items-center justify-center px-9 py-4 rounded-xl font-medium text-sm text-[#08060D] bg-[var(--signal)] shadow-[0_0_35px_rgba(0,229,255,0.5)] hover:shadow-[0_0_50px_rgba(0,229,255,0.8)] transition-all cursor-pointer"
           >
             <span className="relative z-10 font-mono font-bold tracking-wider uppercase text-xs flex items-center gap-3">
