@@ -3,9 +3,23 @@ import bcrypt from "bcryptjs";
 import { db } from "@/db";
 import { users } from "@/db/schema";
 import { eq } from "drizzle-orm";
+import { authRateLimiter, getClientIp, getRateLimitHeaders } from "@/lib/ratelimit";
 
 export async function POST(req: Request) {
   try {
+    const clientIp = getClientIp(req);
+    const rateLimit = await authRateLimiter.limit(clientIp);
+
+    if (!rateLimit.success) {
+      return NextResponse.json(
+        { error: "Too many signup attempts. Please slow down and try again later." },
+        {
+          status: 429,
+          headers: getRateLimitHeaders(rateLimit),
+        }
+      );
+    }
+
     const { email, password, name } = await req.json();
 
     if (!email || !password || password.length < 6) {

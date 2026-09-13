@@ -1,17 +1,40 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { authRateLimiter, apiMutationRateLimiter, getRateLimitHeaders, getClientIp } from "@/lib/ratelimit";
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Protected paths requiring auth session cookie
+  // Rate Limiting check
+  const ip = getClientIp(request);
+
+  if (pathname.startsWith("/login") || pathname.startsWith("/signup")) {
+    const rateLimit = await authRateLimiter.limit(`auth-page:${ip}`);
+    if (!rateLimit.success) {
+      return new NextResponse("Too Many Requests. Please slow down.", {
+        status: 429,
+        headers: getRateLimitHeaders(rateLimit),
+      });
+    }
+  } else if (pathname.startsWith("/api/collectors") && request.method === "POST") {
+    const rateLimit = await apiMutationRateLimiter.limit(`api-collector:${ip}`);
+    if (!rateLimit.success) {
+      return NextResponse.json(
+        { error: "Too many requests. Please slow down." },
+        {
+          status: 429,
+          headers: getRateLimitHeaders(rateLimit),
+        }
+      );
+    }
+  }
+
   const isProtectedPath =
     pathname.startsWith("/control-room") ||
     pathname.startsWith("/dashboard") ||
     pathname.startsWith("/inventory") ||
     pathname.startsWith("/services");
 
-  // Check NextAuth session tokens in cookies
   const hasSessionToken =
     request.cookies.has("next-auth.session-token") ||
     request.cookies.has("__Secure-next-auth.session-token") ||
@@ -27,5 +50,14 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/control-room/:path*", "/dashboard/:path*", "/inventory/:path*", "/services/:path*"],
+  matcher: [
+    "/login",
+    "/signup",
+    "/api/collectors/:path*",
+    "/control-room/:path*",
+    "/dashboard/:path*",
+    "/inventory/:path*",
+    "/services/:path*",
+  ],
 };
+
