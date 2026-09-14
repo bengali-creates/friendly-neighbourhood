@@ -6,13 +6,6 @@ interface WindowData {
   currentWindowStart: number;
 }
 
-/**
- * MemorySlidingWindowDriver
- *
- * Implements the Sliding Window Counter algorithm in memory.
- * Perfect for zero-dependency local development, staging, or environments
- * without an external Redis instance.
- */
 export class MemorySlidingWindowDriver implements RateLimiterDriver {
   private store: Map<string, WindowData>;
   private cleanupInterval: NodeJS.Timeout | null = null;

@@ -1,6 +1,7 @@
 import { LandingWrapper } from "@/components/landing/LandingWrapper";
 import { NavBar } from "@/components/landing/NavBar";
 import { RadarCanvas } from "@/components/landing/RadarCanvas";
+import { ThematicBackground } from "@/components/landing/ThematicBackground";
 import { ProgressRail } from "@/components/landing/ProgressRail";
 import { HeroSection } from "@/components/landing/HeroSection";
 import { ThreatScanner } from "@/components/landing/ThreatScanner";
@@ -11,7 +12,10 @@ import { CommandDeck } from "@/components/landing/CommandDeck";
 export default function MarketingLandingPage() {
   return (
     <LandingWrapper>
-      {/* Fixed Ambient Background Canvas */}
+      {/* Dynamic Scenario-Shifting Thematic Parallax Background */}
+      <ThematicBackground />
+
+      {/* Fixed Ambient 3D Radar Canvas */}
       <RadarCanvas />
 
       {/* Navigation and Side Progress Rail */}
