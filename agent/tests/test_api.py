@@ -26,7 +26,7 @@ def test_watch_endpoint_uniformity(client):
         with patch("main.check_dataset_marketplace", return_value=None):
             with patch("main.StorageClient.get_collector_by_url", new_callable=AsyncMock, return_value=None):
                 with patch("main.StorageClient.save_collector", new_callable=AsyncMock, return_value=True):
-                    with patch("main._run_unified_pipeline", new_callable=AsyncMock):
+                    with patch("main.run_unified_pipeline", new_callable=AsyncMock):
                         res = client.post("/watch", json={
                             "url": "https://example.com/terms",
                             "name": "Example Monitor",

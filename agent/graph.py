@@ -1,143 +1,96 @@
-"""
-LangGraph agent graph for Spider-Sense.
-Flow: scrape → validate → [heal → scrape] → diff → filter → [draft → research] → END
-
-Key changes:
-- scrape_node uses Bright Data Python SDK (not CLI subprocess)
-- research_node searches Google + Reddit + Perplexity for articles on detected changes
-- draft_node synthesizes positions A/B and an action script
-- LLM: Google Gemini 3.6 Flash via google-genai SDK (balanced speed + cost)
-"""
-import json
 import os
+import json
 import time
 import asyncio
-import subprocess
-from typing import TypedDict, Optional, Literal
+import difflib
+from typing import TypedDict, Optional, Literal, List, Dict, Any
+
 from langgraph.graph import StateGraph, END
-from brightdata_client import run_collector, search_google, search_reddit, search_perplexity
-from storage.db import update_job_progress, save_snapshot, save_heal_event
-
-  
-_gemini_client = None
-
-def _get_gemini():
-    """Lazy-init Google GenAI client. Uses GEMINI_API_KEY from .env."""
-    global _gemini_client
-    if _gemini_client is None:
-        from google import genai
-        api_key = os.getenv("GEMINI_API_KEY")
-        _gemini_client = genai.Client(api_key=api_key) if api_key else genai.Client()
-    return _gemini_client
-
-
-def _ask_gemini(prompt: str, model: str = "gemini-3.6-flash") -> str:
-    """One-shot text prompt → response string. Most balanced token-saving model."""
-    client = _get_gemini()
-    try:
-        res = client.models.generate_content(model=model, contents=prompt)
-        return res.text or ""
-    except Exception as e:
-        print(f"[_ask_gemini error]: {e}")
-        return ""
-
+from scrapers.engine import ScraperEngine, ScrapedSnapshot
+from scrapers.inhouse import InHouseScraper
+from brightdata_client import run_bdata_cli, search_google, search_reddit, search_perplexity
+from storage.db import StorageClient
+from llm import ask_gemini
 
 class AgentState(TypedDict):
     job_id: Optional[str]
-    collector_id: str
+    collector_id: Optional[str]
     url: Optional[str]
-    source_type: Optional[str]             
-    snapshot: Optional[dict]
-    previous_snapshot: Optional[dict]
+    prompt: Optional[str]
+    source_type: Optional[str]
+    scrape_engine: Optional[str]  
+    healed_selector: Optional[str]
+    snapshot: Optional[Dict[str, Any]]
+    previous_snapshot: Optional[Dict[str, Any]]
     validation_passed: bool
     heal_attempts: int
-    diff: Optional[dict]
+    diff: Optional[Dict[str, Any]]
     severity: Optional[Literal["INFO", "WARNING", "CRITICAL"]]
     alert: Optional[str]
     draft_script: Optional[str]
-    position_a: Optional[str]              
-    position_b: Optional[str]              
-    sources: Optional[list]                
+    position_a: Optional[str]
+    position_b: Optional[str]
+    sources: Optional[List[Dict[str, Any]]]
 
 
-  
 
-def scrape_node(state: AgentState) -> AgentState:
-    collector_id = state["collector_id"]
+async def scrape_node(state: AgentState) -> AgentState:
+    collector_id = state.get("collector_id") or "c_inhouse"
     url = state.get("url") or ""
     job_id = state.get("job_id")
+    prompt = state.get("prompt")
+    engine = state.get("scrape_engine") or "auto"
+    healed_selector = state.get("healed_selector")
+    if state.get("snapshot"):
+        print(f"[scrape_node] Using pre-provided snapshot for job {job_id}")
+        return state
 
     if job_id:
         try:
-            update_job_progress(
+            await StorageClient.update_job_progress(
                 job_id=job_id,
                 collector_id=collector_id,
                 url=url,
                 status="scraping",
                 progress=20,
-                current_step="Checking DB cache before scraping...",
+                current_step=f"Extracting live data via {engine.upper()} scraper engine...",
             )
         except Exception:
             pass
 
-      
-      
-      
-    CACHE_MAX_AGE_DAYS = 7
+    snapshot: Optional[Dict[str, Any]] = None
     try:
-        from storage.db import get_snapshots
-        from datetime import datetime, timezone
-        cached = get_snapshots(collector_id=collector_id, limit=1)
-        if cached:
-            latest = cached[0]
-            scraped_at_str = latest.get("scraped_at") or latest.get("scrapedAt")
-            if scraped_at_str:
-                scraped_at = datetime.fromisoformat(str(scraped_at_str).replace("Z", "+00:00"))
-                age_days = (datetime.now(timezone.utc) - scraped_at).days
-                if age_days < CACHE_MAX_AGE_DAYS:
-                    raw = latest.get("raw_data") or latest.get("text") or latest.get("data")
-                    if raw:
-                        try:
-                            snapshot = json.loads(raw) if isinstance(raw, str) else raw
-                        except Exception:
-                            snapshot = {"text": str(raw)}
-                        print(f"[scrape_node] DB cache HIT ({age_days}d old) for {collector_id} — skipping Bright Data API call")
-                        if job_id:
-                            update_job_progress(
-                                job_id=job_id, collector_id=collector_id, url=url,
-                                status="scraping", progress=40,
-                                current_step=f"Loaded from DB cache ({age_days}d old)",
-                            )
-                        return {**state, "snapshot": snapshot}
-    except Exception as cache_err:
-        print(f"[scrape_node] DB cache check failed, falling through to API: {cache_err}")
-
-    # ── Live Scrape via Bright Data SDK / API ─────────────────────────
-    print(f"[scrape_node] No fresh cache found — triggering Bright Data for {collector_id}")
-    snapshot = None
-    try:
-        snapshot = run_collector(collector_id, url)
-    except Exception as e:
-        print(f"[scrape_node] run_collector failed: {e}")
+        snapshot = await ScraperEngine.scrape(
+            url=url,
+            collector_id=collector_id,
+            prompt=prompt,
+            engine=engine,
+            job_id=job_id,
+        )
+    except Exception as scrape_err:
+        print(f"[scrape_node] Scraper execution failed: {scrape_err}")
         snapshot = None
 
     if snapshot:
         try:
-            text_rep = json.dumps(snapshot) if isinstance(snapshot, (dict, list)) else str(snapshot)
-            save_snapshot(collector_id, url or "", text_rep, snapshot)
-            print(f"[scrape_node] Successfully saved snapshot to DB for collector {collector_id}")
+            raw_text = snapshot.get("raw_text") or json.dumps(snapshot)
+            await StorageClient.save_snapshot(collector_id, url or "", raw_text, snapshot)
+            print(f"[scrape_node] Saved snapshot to DB for {collector_id}")
         except Exception as snap_err:
             print(f"[scrape_node] Failed to save snapshot to DB: {snap_err}")
 
     if job_id:
         try:
-            text_rep = json.dumps(snapshot) if snapshot else ""
-            bytes_scraped = len(text_rep.encode("utf-8"))
-            items_scraped = len(snapshot) if isinstance(snapshot, list) else (1 if snapshot else 0)
-            update_job_progress(
-                job_id=job_id, collector_id=collector_id, url=url,
-                status="scraping", progress=40,
-                current_step=f"Extracted {bytes_scraped} bytes from Bright Data",
+            text_rep = snapshot.get("raw_text") if snapshot else ""
+            bytes_scraped = len(text_rep.encode("utf-8")) if text_rep else 0
+            items_scraped = len(snapshot.get("sections", {})) if snapshot else 0
+            await StorageClient.update_job_progress(
+                job_id=job_id,
+                collector_id=collector_id,
+                url=url,
+                status="scraping",
+                progress=45,
+                current_step=f"Extracted {bytes_scraped} bytes via {snapshot.get('source', 'engine') if snapshot else 'scraper'}",
                 bytes_scraped=bytes_scraped,
                 items_scraped=items_scraped,
             )
@@ -147,118 +100,111 @@ def scrape_node(state: AgentState) -> AgentState:
     return {**state, "snapshot": snapshot}
 
 
-def validate_node(state: AgentState) -> AgentState:
-    """Check snapshot is non-null and contains at least one data field."""
+async def validate_node(state: AgentState) -> AgentState:
     job_id = state.get("job_id")
     if job_id:
         try:
-            from storage.db import update_job_progress
-            update_job_progress(
+            await StorageClient.update_job_progress(
                 job_id=job_id,
                 collector_id=state.get("collector_id"),
                 url=state.get("url"),
                 status="validating",
                 progress=50,
-                current_step="Validating snapshot integrity",
+                current_step="Validating document payload integrity",
             )
         except Exception:
             pass
 
-    snapshot = state["snapshot"]
+    snapshot = state.get("snapshot")
     if not snapshot:
         return {**state, "validation_passed": False}
 
-      
-    item = snapshot[0] if isinstance(snapshot, list) else snapshot
-    passed = bool(item) if isinstance(item, dict) else bool(snapshot)
+    raw_text = snapshot.get("raw_text") or snapshot.get("text") or ""
+    sections = snapshot.get("sections") or {}
+
+    passed = len(raw_text.strip()) > 40 or len(sections) > 0
     return {**state, "validation_passed": passed}
 
 
-def heal_node(state: AgentState) -> AgentState:
-    """Trigger self-heal via Bright Data CLI and log the event with full telemetry."""
-    import asyncio
-    import time
-    collector_id = state["collector_id"]
+async def heal_node(state: AgentState) -> AgentState:
+    collector_id = state.get("collector_id") or "c_inhouse"
     url = state.get("url", "")
     attempts = state.get("heal_attempts", 0)
-    snapshot = state.get("snapshot")
     job_id = state.get("job_id")
+    engine = state.get("scrape_engine") or "auto"
 
     if job_id:
         try:
-            from storage.db import update_job_progress
-            update_job_progress(
+            await StorageClient.update_job_progress(
                 job_id=job_id,
                 collector_id=collector_id,
                 url=url,
                 status="healing",
                 progress=55,
-                current_step="Executing autonomous self-healing proxy rotation",
+                current_step=f"Autonomous Self-Healing ({engine}): Re-analyzing DOM selectors...",
             )
         except Exception:
             pass
 
-    if snapshot is None:
-        heal_type = "network"
-        description = "Scrape returned None — possible IP block, CAPTCHA, or bot detection"
-        resolution = "Bright Data proxy rotation triggered. Scraper retrying with new residential IP."
-    elif isinstance(snapshot, dict) and not snapshot.get("url"):
-        heal_type = "extraction"
-        description = "Extraction returned incomplete data — URL field missing from snapshot"
-        resolution = "Bright Data self-heal: DOM selectors re-analyzed and redeployed automatically."
-    else:
-        heal_type = "extraction"
-        description = "Validation failed — extracted data did not pass field checks"
-        resolution = "Retrying scrape with updated selector strategy."
-
+    description = "Validation failed: Extracted document content was empty or below minimum threshold."
+    heal_type = "extraction"
+    resolution = "Dynamic AI selector synthesis"
+    new_selector = None
     start_ms = int(time.time() * 1000)
+    if engine in ("inhouse", "auto"):
+        try:
+            heal_res = await InHouseScraper.heal(
+                url=url,
+                issue_description=description,
+                collector_id=collector_id,
+            )
+            new_selector = heal_res.get("healed_selector")
+            resolution = heal_res.get("resolution") or resolution
+        except Exception as heal_err:
+            print(f"[heal_node] In-house heal failed: {heal_err}")
 
-    npx_cmd = "npx.cmd" if os.name == "nt" else "npx"
-    subprocess.run(
-        [npx_cmd, "-p", "@brightdata/cli", "bdata", "scraper", "heal",
-         collector_id,
-         description,
-         "--url", url, "--auto-approve"],
-        capture_output=True, text=True, timeout=180, shell=(os.name == "nt")
-    )
+    elif engine == "brightdata":
+        try:
+            await asyncio.to_thread(
+                run_bdata_cli,
+                [
+                    "scraper", "heal", collector_id, description,
+                    "--url", url, "--auto-approve"
+                ],
+                120
+            )
+            resolution = "Bright Data Scraper Studio cloud repair executed"
+        except Exception as bd_heal_err:
+            print(f"[heal_node] Bright Data heal failed: {bd_heal_err}")
 
     duration_ms = int(time.time() * 1000) - start_ms
 
     try:
-        from storage.db import save_heal_event
-        import threading
-          
-          
-        def _run_save():
-            loop = asyncio.new_event_loop()
-            try:
-                loop.run_until_complete(save_heal_event(
-                    collector_id=collector_id,
-                    description=description,
-                    heal_type=heal_type,
-                    resolution=resolution,
-                    attempts=attempts + 1,
-                    duration_ms=duration_ms,
-                    succeeded=True,
-                ))
-            finally:
-                loop.close()
-        threading.Thread(target=_run_save, daemon=True).start()
+        await StorageClient.save_heal_event(
+            collector_id=collector_id,
+            description=description,
+            heal_type=heal_type,
+            resolution=resolution,
+            attempts=attempts + 1,
+            duration_ms=duration_ms,
+            succeeded=True,
+        )
     except Exception:
         pass
 
-    return {**state, "heal_attempts": attempts + 1}
+    return {
+        **state,
+        "heal_attempts": attempts + 1,
+        "healed_selector": new_selector,
+    }
 
 
-def diff_node(state: AgentState) -> AgentState:
-    """Compare today's snapshot against the previous one."""
-    import difflib
+async def diff_node(state: AgentState) -> AgentState:
     job_id = state.get("job_id")
 
     if job_id:
         try:
-            from storage.db import update_job_progress
-            update_job_progress(
+            await StorageClient.update_job_progress(
                 job_id=job_id,
                 collector_id=state.get("collector_id"),
                 url=state.get("url"),
@@ -277,134 +223,115 @@ def diff_node(state: AgentState) -> AgentState:
     def to_text(s):
         if isinstance(s, str):
             return s
-        if isinstance(s, (dict, list)):
+        if isinstance(s, dict):
+            return s.get("raw_text") or json.dumps(s, indent=2, sort_keys=True)
+        if isinstance(s, list):
             return json.dumps(s, indent=2, sort_keys=True)
         return str(s or "")
 
     current_text = to_text(current)
     previous_text = to_text(previous)
 
-    lines = [
-        l for l in difflib.unified_diff(
-            [l.rstrip() for l in previous_text.splitlines()],
-            [l.rstrip() for l in current_text.splitlines()],
-            lineterm=""
-        )
-    ]
+    lines = list(difflib.unified_diff(
+        [l.rstrip() for l in previous_text.splitlines()],
+        [l.rstrip() for l in current_text.splitlines()],
+        lineterm=""
+    ))
     meaningful = [l for l in lines if l.startswith(("+", "-")) and l[1:].strip()]
     diff = {"lines": lines, "changed": len(meaningful) > 0}
     return {**state, "diff": diff}
 
 
-def filter_node(state: AgentState) -> AgentState:
-    """
-    Classify the diff severity using Gemini.
-    CRITICAL = fee, cancellation method, data sharing, safety recall
-    WARNING  = meaningful structural change, new clause
-    INFO     = minor wording / typo
-    NONE     = whitespace / formatting only
-    """
-    from dotenv import load_dotenv
-    load_dotenv()
-
+async def filter_node(state: AgentState) -> AgentState:
+    """Classify diff severity using Gemini."""
     job_id = state.get("job_id")
 
     if job_id:
         try:
-            from storage.db import update_job_progress
-            update_job_progress(
+            await StorageClient.update_job_progress(
                 job_id=job_id,
                 collector_id=state.get("collector_id"),
                 url=state.get("url"),
                 status="filtering",
                 progress=75,
-                current_step="Evaluating policy change severity",
+                current_step="Evaluating policy change severity with Gemini AI",
             )
         except Exception:
             pass
 
     diff = state.get("diff")
     if not diff or not diff.get("changed"):
-          
         if job_id:
             try:
-                from storage.db import update_job_progress, save_notification, dispatch_external_notification
-                update_job_progress(
+                await StorageClient.update_job_progress(
                     job_id=job_id,
                     collector_id=state.get("collector_id"),
                     url=state.get("url"),
                     status="completed",
                     progress=100,
-                    current_step="No changes detected — snapshot baseline intact",
+                    current_step="No policy changes detected — baseline intact",
                 )
                 url_str = state.get("url") or state.get("collector_id") or "target site"
-                msg = f"Scrape run complete for {url_str}. Baseline snapshot verified with 0 changes."
-                save_notification("Scrape Completed", msg, "scrape_complete", state.get("collector_id"))
-                dispatch_external_notification("Scrape Completed", msg)
+                msg = f"Scrape complete for {url_str}. Baseline snapshot verified with 0 alterations."
+                await StorageClient.save_notification("Scrape Completed", msg, "scrape_complete", state.get("collector_id"))
+                StorageClient.dispatch_external_notification("Scrape Completed", msg)
             except Exception:
                 pass
         return {**state, "severity": None}
 
     diff_text = "\n".join(diff["lines"])
-    severity_raw = _ask_gemini(f"""You are a policy-change classifier. Given this diff of a Terms of Service or recall document,
-classify the severity of the change:
-- CRITICAL: new fee, cancellation method changed, data sharing added, safety recall
-- WARNING: meaningful structural change, new clause, rights changed
-- INFO: minor wording, typo fix, formatting
-- NONE: whitespace only, no semantic change
+    prompt = f"""You are a policy-change risk classifier. Given this diff of a Terms of Service or regulatory document:
+Classify the change severity:
+- CRITICAL: new fees, arbitration clauses, cancellation method made harder, AI model training opt-in, extensive third-party data sharing
+- WARNING: meaningful structural change, modified clause, altered user warranties
+- INFO: minor wording, formatting, typo fix
+- NONE: whitespace or formatting only
 
 Diff:
 {diff_text[:3000]}
 
-Reply with exactly one word: CRITICAL, WARNING, INFO, or NONE.""").strip().upper()
+Reply with exactly one word: CRITICAL, WARNING, INFO, or NONE."""
 
+    severity_raw = (await asyncio.to_thread(ask_gemini, prompt)).strip().upper()
     severity = severity_raw if severity_raw in ("CRITICAL", "WARNING", "INFO") else None
     return {**state, "severity": severity}
 
 
-def research_node(state: AgentState) -> AgentState:
-    """
-    When a CRITICAL/WARNING change is detected on a ToS or civic page:
-    1. Search Google, Reddit, Perplexity for articles about the change
-    2. Return structured source list with title, url, snippet
-    """
+async def research_node(state: AgentState) -> AgentState:
     diff = state.get("diff", {})
-    collector_id = state["collector_id"]
+    collector_id = state.get("collector_id") or ""
     url = state.get("url", "")
     source_type = state.get("source_type", "general")
     job_id = state.get("job_id")
 
     if job_id:
         try:
-            from storage.db import update_job_progress
-            update_job_progress(
+            await StorageClient.update_job_progress(
                 job_id=job_id,
                 collector_id=collector_id,
                 url=url,
                 status="researching",
                 progress=85,
-                current_step="Synthesizing web search and community stance",
+                current_step="Synthesizing multi-source web intelligence & community stance",
             )
         except Exception:
             pass
 
-    if source_type not in ("tos", "civic"):
+    if source_type not in ("tos", "civic", "general"):
         return {**state, "sources": []}
 
-    diff_text = "\n".join(diff.get("lines", []))[:500]
-    search_query = f"site policy changes {url.split('/')[2] if '/' in url else url} privacy terms"
+    domain = url.split("/")[2] if "/" in url and len(url.split("/")) > 2 else url
+    search_query = f"{domain} policy update changes privacy terms controversy"
 
     all_sources = []
     try:
-        from brightdata_client import search_google, search_reddit, search_perplexity
-
-        google_results = search_google(search_query, num_results=5)
+        google_results = await asyncio.to_thread(search_google, search_query, 4)
         all_sources.extend(google_results)
 
-        reddit_results = search_reddit(search_query, num_results=3)
+        reddit_results = await asyncio.to_thread(search_reddit, search_query, 3)
         all_sources.extend(reddit_results)
 
-        perplexity_result = search_perplexity(search_query)
+        perplexity_result = await asyncio.to_thread(search_perplexity, search_query)
         if perplexity_result:
             all_sources.append({
                 "title": f"Perplexity AI: {search_query}",
@@ -413,27 +340,17 @@ def research_node(state: AgentState) -> AgentState:
                 "source_type": "perplexity",
             })
     except Exception as e:
-        print(f"[research_node] Research failed: {e}")
+        print(f"[research_node] Research synthesis error: {e}")
 
     return {**state, "sources": all_sources}
 
 
-def draft_node(state: AgentState) -> AgentState:
-    """
-    Generate:
-    1. A 1-sentence plain-English impact alert
-    2. Two unified positions (A = mainstream risk, B = alternative/mitigation)
-    3. A ready-to-copy action script (email template, opt-out steps, etc.)
-    """
-    from dotenv import load_dotenv
-    load_dotenv()
-
+async def draft_node(state: AgentState) -> AgentState:
     job_id = state.get("job_id")
 
     if job_id:
         try:
-            from storage.db import update_job_progress
-            update_job_progress(
+            await StorageClient.update_job_progress(
                 job_id=job_id,
                 collector_id=state.get("collector_id"),
                 url=state.get("url"),
@@ -450,31 +367,33 @@ def draft_node(state: AgentState) -> AgentState:
 
     sources_context = "\n".join([
         f"- {s['title']}: {s['snippet'][:200]} ({s['url']})"
-        for s in sources[:8]
-    ]) if sources else "No external sources found."
+        for s in sources[:6]
+    ]) if sources else "No external articles found."
 
-    content = _ask_gemini(f"""You are Spider-Sense, a personal radar that alerts users to changes that could hurt them.
+    prompt = f"""You are Spider-Sense, a consumer protection radar alerting users to changes that impact them.
 
-A document change was detected. Here is the diff:
-{diff_text[:2000]}
+Document diff:
+{diff_text[:2500]}
 
-Here are related articles and sources found on the web:
+Related sources & community intelligence:
 {sources_context}
 
 Generate:
-1. ALERT: A 1-sentence plain-English impact statement (start with the impact to the user, not the change itself)
-2. POSITION_A: The mainstream / risk-focused view on this change (2-3 sentences)
-3. POSITION_B: An alternative perspective or mitigation view (2-3 sentences)
-4. SCRIPT: A ready-to-copy action script — could be an opt-out email draft, cancellation request, data deletion steps, or refund claim. Be specific.
+1. ALERT: A 1-sentence plain-English impact statement focusing directly on what happens to the user.
+2. POSITION_A: Mainstream / risk-focused view on this change (2-3 sentences).
+3. POSITION_B: Alternative perspective, corporate rationale, or mitigation view (2-3 sentences).
+4. SCRIPT: A ready-to-copy action script (e.g., opt-out email, cancellation template, data deletion request).
 
 Format exactly:
 ALERT: <1 sentence>
 POSITION_A: <2-3 sentences>
 POSITION_B: <2-3 sentences>
 SCRIPT:
-<action script>""")
+<action script>"""
 
-    def extract(label: str, next_labels: list[str] = []) -> str:
+    content = await asyncio.to_thread(ask_gemini, prompt)
+
+    def extract(label: str, next_labels: List[str] = []) -> str:
         start = content.find(f"{label}:")
         if start == -1:
             return ""
@@ -493,41 +412,40 @@ SCRIPT:
 
     if job_id:
         try:
-            from storage.db import update_job_progress, save_notification, dispatch_external_notification
-            update_job_progress(
+            await StorageClient.update_job_progress(
                 job_id=job_id,
                 collector_id=state.get("collector_id"),
                 url=state.get("url"),
                 status="completed",
                 progress=100,
-                current_step="Analysis completed — alert and action script generated",
+                current_step="Analysis completed — alert and action script synthesized",
             )
             url_str = state.get("url") or state.get("collector_id") or "target site"
             sev = state.get("severity") or "WARNING"
             notif_msg = f"{sev} Alert: {alert or 'Policy change detected.'}"
-            save_notification(f"Policy Alert ({sev})", notif_msg, "alert_triggered", state.get("collector_id"))
-            dispatch_external_notification(f"Policy Alert ({sev})", notif_msg, category=state.get("source_type") or "general")
+            await StorageClient.save_notification(f"Policy Alert ({sev})", notif_msg, "alert_triggered", state.get("collector_id"))
+            StorageClient.dispatch_external_notification(f"Policy Alert ({sev})", notif_msg, category=state.get("source_type") or "general")
         except Exception:
             pass
 
-    return {**state, "alert": alert, "position_a": position_a, "position_b": position_b, "draft_script": script}
+    return {
+        **state,
+        "alert": alert,
+        "position_a": position_a,
+        "position_b": position_b,
+        "draft_script": script,
+    }
 
 
-  
 
 def should_heal(state: AgentState) -> str:
-      
-      
-    if not state["validation_passed"] and state.get("heal_attempts", 0) < 1:
+    if not state.get("validation_passed", False) and state.get("heal_attempts", 0) < 1:
         return "heal"
     return "diff"
 
 
 def should_alert(state: AgentState) -> str:
     return "draft" if state.get("severity") in ("WARNING", "CRITICAL") else END
-
-
-  
 
 graph = StateGraph(AgentState)
 
@@ -542,10 +460,11 @@ graph.add_node("draft",     draft_node)
 graph.set_entry_point("scrape")
 graph.add_edge("scrape",   "validate")
 graph.add_conditional_edges("validate", should_heal, {"heal": "heal", "diff": "differ"})
-graph.add_edge("heal",     "scrape")      
+graph.add_edge("heal",     "scrape")
 graph.add_edge("differ",   "filter")
 graph.add_conditional_edges("filter", should_alert, {"draft": "research", END: END})
 graph.add_edge("research", "draft")
 graph.add_edge("draft",    END)
 
-app = graph.compile()
+agent_graph = graph.compile()
+app = agent_graph
