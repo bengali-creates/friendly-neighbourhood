@@ -143,5 +143,28 @@ export const activeJobs = pgTable("active_jobs", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+export const notificationChannels = pgTable("notification_channels", {
+  id: serial("id").primaryKey(),
+  provider: text("provider").notNull(), // "whatsapp" | "telegram" | "discord"
+  name: text("name").notNull(),
+  enabled: boolean("enabled").default(true).notNull(),
+  config: jsonb("config").notNull(), // { phoneNumberId, token, recipientPhone } | { botToken, chatId } | { webhookUrl }
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const channelLogs = pgTable("channel_logs", {
+  id: serial("id").primaryKey(),
+  channelId: integer("channel_id"),
+  provider: text("provider").notNull(),
+  title: text("title").notNull(),
+  message: text("message").notNull(),
+  severity: text("severity").default("INFO").notNull(),
+  status: text("status").notNull(), // "success" | "failed"
+  details: text("details"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+
 
 

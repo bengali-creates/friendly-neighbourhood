@@ -116,11 +116,7 @@ Effective Date: Immediately upon receipt.`;
     const section = sectionRef.current;
     if (!section) return;
 
-    const ctx = gsap.context(() => {
-      // 1. Initial setup for horizontal stacking (like folders/books)
-      // Card 0 starts active front and center.
-      // Cards 1..N start offscreen to the right (x: '100%') with subtle rotation and scale
-      cardRefs.current.forEach((card, i) => {
+    const ctx = gsap.context(() => {cardRefs.current.forEach((card, i) => {
         if (!card) return;
         gsap.set(card, {
           x: i === 0 ? '0%' : '110%',
@@ -129,11 +125,10 @@ Effective Date: Immediately upon receipt.`;
           rotateZ: 0,
           opacity: 1,
           pointerEvents: i === 0 ? 'auto' : 'none',
-          zIndex: 10 + i, // Higher index on later cards so they stack on top as they slide in
+          zIndex: 10 + i, 
         });
       });
 
-      // 2. Timeline scrubbing through stacked transitions
       const tl = gsap.timeline({
         scrollTrigger: {
           trigger: section,
@@ -153,17 +148,12 @@ Effective Date: Immediately upon receipt.`;
         },
       });
 
-      // 3. Physical Stacking transition:
-      // When scrolling down, incoming card slides horizontally from the right directly over the previous card.
-      // Both cards retain 100% opacity because each card has a completely solid opaque background with deep shadows,
-      // creating an authentic physical deck/folder stack without any transparency, ghosting, or see-through text.
       for (let i = 1; i < SLIDES.length; i++) {
         const prevCard = cardRefs.current[i - 1];
         const nextCard = cardRefs.current[i];
         const stepLabel = `step${i}`;
 
         if (prevCard && nextCard) {
-          // Slide in the next card from the right to stack over
           tl.to(
             nextCard,
             {
@@ -177,7 +167,6 @@ Effective Date: Immediately upon receipt.`;
             stepLabel
           );
 
-          // The card underneath settles into the stack behind the incoming solid card
           tl.to(
             prevCard,
             {
@@ -202,24 +191,20 @@ Effective Date: Immediately upon receipt.`;
     <section
       ref={sectionRef}
       id="scanner"
-      className="relative w-full bg-[#050508] overflow-hidden"
+      className="relative w-full overflow-hidden"
     >
-      {/* PINNED FULLSCREEN VIEWPORT CONTAINER */}
       <div className="relative h-screen w-screen overflow-hidden flex flex-col justify-between py-4 sm:py-6">
         
-        {/* STACKED CARDS STAGE */}
         <div className="relative flex-1 w-full h-full overflow-hidden flex items-center justify-center">
           
-          {/* SLIDE 1: THE SILENT TRAP */}
           <div
             ref={(el) => {
               cardRefs.current[0] = el;
             }}
-            className="absolute inset-0 w-full h-full flex items-center justify-center p-4 sm:p-8 md:p-12 will-change-transform"
+            className="absolute inset-0 w-full h-full flex items-center justify-center p-4  md:p-8 will-change-transform"
           >
-            <div className="max-w-5xl w-full grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 items-center bg-[#0d0914] border border-red-500/30 rounded-2xl p-6 sm:p-8 md:p-10 shadow-[0_20px_70px_rgba(0,0,0,0.95)]">
+            <div className="max-w-5xl w-full grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 items-center bg-[#0d0914] border border-red-500/30 rounded-2xl p-6  md:p-10 shadow-[0_20px_70px_rgba(0,0,0,0.95)]">
               
-              {/* Left Editorial Copy */}
               <div className="lg:col-span-6 flex flex-col">
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-red-500/40 bg-red-500/10 w-fit mb-3">
                   <AlertCircle className="w-3.5 h-3.5 text-red-400" />
@@ -248,7 +233,7 @@ Effective Date: Immediately upon receipt.`;
 
               {/* Right Visual Showcase: The Quiet Midnight Rewrite */}
               <div className="lg:col-span-6">
-                <div className="relative rounded-2xl border border-red-500/30 bg-[#0c0812]/95 backdrop-blur-2xl p-6 sm:p-8 shadow-[0_25px_60px_rgba(0,0,0,0.85)] overflow-hidden">
+                <div className="relative rounded-2xl border border-red-500/30 bg-[#0c0812]/95 backdrop-blur-2xl p-6  shadow-[0_25px_60px_rgba(0,0,0,0.85)] overflow-hidden">
                   <div className="flex items-center justify-between border-b border-white/10 pb-4 mb-4">
                     <div className="flex items-center gap-2">
                       <FileText className="w-4 h-4 text-red-400" />
@@ -299,9 +284,9 @@ Effective Date: Immediately upon receipt.`;
             ref={(el) => {
               cardRefs.current[1] = el;
             }}
-            className="absolute inset-0 w-full h-full flex items-center justify-center p-4 sm:p-8 md:p-12 will-change-transform"
+            className="absolute inset-0 w-full h-full flex items-center justify-center p-4  md:p-8 will-change-transform"
           >
-            <div className="max-w-5xl w-full grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 items-center bg-[#070e17] border border-cyan-500/30 rounded-2xl p-6 sm:p-8 md:p-10 shadow-[0_20px_70px_rgba(0,0,0,0.95)]">
+            <div className="max-w-5xl w-full grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 items-center bg-[#070e17] border border-cyan-500/30 rounded-2xl p-6  md:p-10 shadow-[0_20px_70px_rgba(0,0,0,0.95)]">
               
               {/* Left Editorial Copy */}
               <div className="lg:col-span-6 flex flex-col">
@@ -402,9 +387,9 @@ Effective Date: Immediately upon receipt.`;
             ref={(el) => {
               cardRefs.current[2] = el;
             }}
-            className="absolute inset-0 w-full h-full flex items-center justify-center p-4 sm:p-8 md:p-12 will-change-transform"
+            className="absolute inset-0 w-full h-full flex items-center justify-center p-4  md:p-8 will-change-transform"
           >
-            <div className="max-w-5xl w-full grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 items-center bg-[#100c14] border border-amber-500/30 rounded-2xl p-6 sm:p-8 md:p-10 shadow-[0_20px_70px_rgba(0,0,0,0.95)]">
+            <div className="max-w-5xl w-full grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 items-center bg-[#100c14] border border-amber-500/30 rounded-2xl p-6  md:p-10 shadow-[0_20px_70px_rgba(0,0,0,0.95)]">
               
               {/* Left Editorial Copy */}
               <div className="lg:col-span-6 flex flex-col">
@@ -484,9 +469,9 @@ Effective Date: Immediately upon receipt.`;
             ref={(el) => {
               cardRefs.current[3] = el;
             }}
-            className="absolute inset-0 w-full h-full flex items-center justify-center p-4 sm:p-8 md:p-12 will-change-transform"
+            className="absolute inset-0 w-full h-full flex items-center justify-center p-4  md:p-8 will-change-transform"
           >
-            <div className="max-w-5xl w-full grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 items-center bg-[#07130e] border border-emerald-500/30 rounded-2xl p-6 sm:p-8 md:p-10 shadow-[0_20px_70px_rgba(0,0,0,0.95)]">
+            <div className="max-w-5xl w-full grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 items-center bg-[#07130e] border border-emerald-500/30 rounded-2xl p-6  md:p-10 shadow-[0_20px_70px_rgba(0,0,0,0.95)]">
               
               {/* Left Editorial Copy */}
               <div className="lg:col-span-6 flex flex-col">
@@ -571,7 +556,7 @@ Effective Date: Immediately upon receipt.`;
         </div>
 
         {/* BOTTOM PAGINATION & SLIDE DOTS */}
-        <div className="w-full max-w-6xl mx-auto px-6 pb-6 flex items-center justify-between border-t border-white/10 pt-4 z-50">
+        <div className="w-full max-w-6xl mx-auto flex items-center justify-between border-t border-white/10 pt-4 z-50">
           <div className="flex items-center gap-2">
             {SLIDES.map((s, idx) => (
               <div
