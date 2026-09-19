@@ -262,8 +262,34 @@ class StorageClient:
         cls,
         title: str,
         message: str,
+        severity: str = "INFO",
         category: str = "general",
+        url: Optional[str] = None,
+        metadata: Optional[dict] = None,
         channel_type: str = "all",
     ) -> dict:
-        print(f"[Channel Dispatch Stub] [{channel_type.upper()}] {title}: {message}")
-        return {"dispatched": True, "channels": ["in_app"], "stub": True}
+        try:
+            import asyncio
+            from channels.router import ChannelRouter
+
+            async def run_dispatch():
+                await ChannelRouter.dispatch_alert(
+                    title=title,
+                    message=message,
+                    severity=severity,
+                    category=category,
+                    url=url,
+                    metadata=metadata,
+                )
+
+            try:
+                loop = asyncio.get_running_loop()
+                loop.create_task(run_dispatch())
+            except RuntimeError:
+                asyncio.run(run_dispatch())
+
+            return {"dispatched": True, "status": "scheduled"}
+        except Exception as e:
+            print(f"[Channel Dispatch Error]: {e}")
+            return {"dispatched": False, "error": str(e)}
+
