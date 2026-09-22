@@ -11,6 +11,11 @@ from storage.db import StorageClient
 from llm import ask_gemini
 from .types import ScrapedSnapshot
 
+try:
+    import trafilatura
+except ImportError:
+    trafilatura = None
+
 
 class InHouseScraper:
     @classmethod
@@ -70,29 +75,56 @@ class InHouseScraper:
                     pass
 
             relevant_links = await cls._find_relevant_links(html_content, base_url=url, prompt=prompt)
-            for link_info in relevant_links[:max_link_depth]:
-                target_link = link_info.get("url")
-                if not target_link or target_link == url:
-                    continue
-                try:
-                    print(f"[InHouseScraper] Following linked document: {target_link} ({link_info.get('title')})")
-                    sub_html, sub_title = await cls._fetch_html(target_link)
-                    if sub_html:
-                        sub_text, _ = cls._extract_text_and_dom(sub_html)
-                        sub_struct = await cls._structure_with_ai(sub_text, prompt=prompt, title=sub_title)
-                        sub_sections = sub_struct.get("sections") or {"Content": sub_text[:2000]}
+            target_candidates = [
+                link for link in relevant_links[:max_link_depth]
+                if link.get("url") and link.get("url") != url
+            ]
+
+            if target_candidates:
+                crawler_semaphore = asyncio.Semaphore(3)
+
+                async def _crawl_single_doc(link_info: Dict[str, str]) -> Optional[Dict[str, Any]]:
+                    target_link = link_info.get("url")
+                    title_hint = link_info.get("title") or "Appendix"
+                    async with crawler_semaphore:
+                        try:
+                            print(f"[InHouseScraper] Parallel crawl fetching: {target_link} ({title_hint})")
+                            sub_html, sub_title = await cls._fetch_html(target_link)
+                            if not sub_html:
+                                return None
+                            sub_text, _ = cls._extract_text_and_dom(sub_html)
+                            if not sub_text or len(sub_text.strip()) < 40:
+                                return None
+                            sub_struct = await cls._structure_with_ai(sub_text, prompt=prompt, title=sub_title)
+                            sub_sections = sub_struct.get("sections") or {"Content": sub_text[:2000]}
+                            return {
+                                "url": target_link,
+                                "title": sub_title or title_hint,
+                                "title_hint": title_hint,
+                                "sections": sub_sections,
+                                "bytes": len(sub_text.encode("utf-8")),
+                            }
+                        except Exception as link_err:
+                            print(f"[InHouseScraper] Failed crawling linked document {target_link}: {link_err}")
+                            return None
+
+                crawl_tasks = [_crawl_single_doc(link) for link in target_candidates]
+                crawl_results = await asyncio.gather(*crawl_tasks, return_exceptions=True)
+
+                for res in crawl_results:
+                    if isinstance(res, dict) and res:
+                        sub_sections = res.get("sections", {})
+                        title_hint = res.get("title_hint") or "Appendix"
                         for sec_name, sec_val in sub_sections.items():
-                            prefixed_key = f"[{link_info.get('title') or 'Appendix'}] {sec_name}"
+                            prefixed_key = f"[{title_hint}] {sec_name}"
                             primary_sections[prefixed_key] = sec_val
 
                         linked_docs.append({
-                            "url": target_link,
-                            "title": sub_title or link_info.get("title"),
+                            "url": res["url"],
+                            "title": res["title"],
                             "sections": sub_sections,
-                            "bytes": len(sub_text.encode("utf-8")),
+                            "bytes": res["bytes"],
                         })
-                except Exception as link_err:
-                    print(f"[InHouseScraper] Failed crawling linked document {target_link}: {link_err}")
 
         total_raw_text = clean_text
         for doc in linked_docs:
@@ -250,14 +282,32 @@ Task:
             except Exception:
                 target = None
 
-        if not target:
-            for tag in soup(["script", "style", "nav", "footer", "header", "noscript", "svg", "iframe"]):
-                tag.decompose()
-            target = soup.body or soup
+        extracted_text = ""
+        target_html = str(target) if target else html
 
-        clean_text = target.get_text(separator=" ", strip=True)
-        clean_text = re.sub(r"\s+", " ", clean_text).strip()
-        return clean_text, str(target)
+        if trafilatura:
+            try:
+                extracted_text = trafilatura.extract(
+                    target_html,
+                    include_tables=True,
+                    include_formatting=True,
+                    include_links=False,
+                    favor_precision=True,
+                    output_format="txt",
+                ) or ""
+            except Exception as traf_err:
+                print(f"[InHouseScraper] Trafilatura extraction exception: {traf_err}")
+                extracted_text = ""
+        if not extracted_text or len(extracted_text.strip()) < 80:
+            if not target:
+                for tag in soup(["script", "style", "nav", "footer", "header", "noscript", "svg", "iframe"]):
+                    tag.decompose()
+                target = soup.body or soup
+            bs_text = target.get_text(separator=" ", strip=True)
+            extracted_text = re.sub(r"\s+", " ", bs_text).strip()
+
+        target_dom = str(target) if target else str(soup.body or soup)
+        return extracted_text.strip(), target_dom
 
     @classmethod
     async def _find_relevant_links(
