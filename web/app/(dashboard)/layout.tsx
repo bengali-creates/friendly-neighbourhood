@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Radar, LayoutDashboard, Package, Shield, Search, Terminal, Cpu, LogOut, Sun, Moon } from "lucide-react";
+import { Radar, LayoutDashboard, Package, Shield, Search, Terminal, Cpu, LogOut, Sun, Moon, Radio } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useStore } from "@/lib/store";
@@ -13,6 +13,7 @@ const NAV_ITEMS: PillNavItem[] = [
   { id: "dashboard", href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { id: "services", href: "/services", label: "Services", icon: Shield },
   { id: "inventory", href: "/inventory", label: "Things I Own", icon: Package },
+  { id: "channels", href: "/channels", label: "Transmitters", icon: Radio },
   { id: "research", href: "/research", label: "Research", icon: Search },
   { id: "heals", href: "/heals", label: "Self-Healing", icon: Cpu },
   { id: "logs", href: "/logs", label: "Agent Logs", icon: Terminal },

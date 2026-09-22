@@ -215,13 +215,6 @@ function AuthCard() {
           backdropFilter: "blur(12px)",
         }}
       >
-        {/* Top bar branding */}
-        <div className="absolute top-5 left-7 z-20 flex items-center gap-2">
-          <div className="w-2 h-2 rounded-full bg-[#00E5FF] shadow-[0_0_8px_#00E5FF]" />
-          <span className="text-[10px] font-mono tracking-[0.25em] uppercase text-[#DFE7E0]/80">
-            Spider-Sense // Consumer Defense
-          </span>
-        </div>
 
         {/* Main interactive panel */}
         <div className="relative z-10 flex-1 flex items-center justify-center overflow-hidden">
