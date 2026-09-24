@@ -42,9 +42,9 @@ const FALLOFF_CURVES: Record<Falloff, (p: number) => number> = {
 export default function LineSidebar({
   items,
   activeHref,
-  accentColor = "#FF2E63",
-  textColor = "#EDEAE0",
-  markerColor = "#00E5FF",
+  accentColor = "#C4B5FD",
+  textColor = "#E8E2D5",
+  markerColor = "#C4B5FD",
   showIndex = true,
   showMarker = true,
   proximityRadius = 100,
@@ -195,10 +195,10 @@ export default function LineSidebar({
               }}
               aria-current={isActive ? "true" : undefined}
               onClick={() => handleClick(index, item)}
-              className={`relative cursor-pointer py-1.5 px-3 rounded border-2 border-transparent transition-all duration-150 ${
+              className={`relative cursor-pointer py-1.5 px-3 rounded-[var(--radius-sm)] border transition-all duration-150 ${
                 isActive
-                  ? "bg-[#1f1738] border-black shadow-[4px_4px_0_#000000] comic-panel-notched"
-                  : "hover:bg-white/5"
+                  ? "bg-[var(--surface)] border-[rgba(196,181,253,0.3)] shadow-sm text-[var(--ink-primary)]"
+                  : "border-transparent text-[var(--ink-secondary)] hover:text-[var(--ink-primary)] hover:bg-[var(--surface)]/50"
               } ${tickClass}`}
             >
               
@@ -216,12 +216,12 @@ export default function LineSidebar({
                 </span>
 
                 {showIndex && (
-                  <span className="font-['Bangers'] text-[1.15em] tracking-wider text-[var(--sv-yellow)] [opacity:calc(0.65+var(--effect,0)*0.35)]">
+                  <span className="font-mono text-[10px] text-[var(--ink-tertiary)] [opacity:calc(0.65+var(--effect,0)*0.35)]">
                     {String(index + 1).padStart(2, "0")}
                   </span>
                 )}
 
-                <span className="font-['Archivo_Black'] text-xs uppercase tracking-wider">{item.label}</span>
+                <span className="text-xs font-medium tracking-normal">{item.label}</span>
               </span>
             </li>
           );

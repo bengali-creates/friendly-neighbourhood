@@ -1,23 +1,10 @@
-"use client";
-
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAlerts } from "@/lib/queries";
 import { useStore } from "@/lib/store";
 import { Shield, Radio, Activity, RefreshCw, ChevronRight } from "lucide-react";
-
-const SEV_CLASS: Record<string, string> = {
-  CRITICAL: "badge--critical",
-  WARNING: "badge--warning",
-  INFO: "badge--info",
-};
-
-const CATEGORY_TAG: Record<string, { label: string; class: string }> = {
-  tos: { label: "TOS DIFF", class: "caption--cyan" },
-  recall: { label: "HAZARD RECALL", class: "caption--red" },
-  civic: { label: "CIVIC NOTICE", class: "caption" },
-  general: { label: "SECURITY RADAR", class: "caption--ghost" },
-};
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 
 export default function AlertsPanel() {
   const { data, isLoading, refetch, isRefetching } = useAlerts();
@@ -32,57 +19,67 @@ export default function AlertsPanel() {
     );
   });
 
-  return (
-    <div className="comic-panel bg-[var(--card-bg)] border-3 border-[#111111] shadow-[6px_6px_0_var(--shadow-color)] p-5 flex flex-col gap-4 rounded-sm relative overflow-hidden">
-      <div className="pointer-events-none absolute -right-24 -top-24 h-64 w-64 rounded-full border-2 border-dashed border-[var(--sv-cyan)]/20 animate-[spin_25s_linear_infinite]" />
+  const getSeverityBadgeVariant = (sev: string): "critical" | "warning" | "info" => {
+    const s = sev?.toUpperCase();
+    if (s === "CRITICAL" || s === "DANGER") return "critical";
+    if (s === "WARNING") return "warning";
+    return "info";
+  };
 
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b-2 border-[#111111] pb-4 gap-3">
+  return (
+    <div className="rounded-[var(--radius-lg)] bg-[var(--depth)] border border-[var(--rim)] p-5 flex flex-col gap-4 relative overflow-hidden transition-colors">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[var(--rim)] pb-4 gap-3">
         <div>
           <div className="flex items-center space-x-2">
-            <span className="caption caption--red">SPIDER SENSE</span>
-            <span className="text-[10px] font-mono uppercase tracking-widest text-[var(--sv-cyan)] flex items-center">
-              <Radio className="w-3 h-3 mr-1 animate-pulse" /> RADAR FEED ACTIVE
+            <span className="inline-block w-1.5 h-1.5 rounded-full bg-[var(--alert)] shadow-[0_0_8px_rgba(248,113,113,0.8)]" />
+            <span className="text-[10px] font-mono uppercase tracking-[0.08em] text-[var(--ink-secondary)] flex items-center">
+              <Radio className="w-3 h-3 mr-1 text-[var(--watchful)] animate-pulse" /> Radar Feed Active
             </span>
           </div>
-          <h2 className="font-['Bangers'] text-3xl tracking-wide text-[var(--fg)] mt-1">
-            AUTONOMOUS RADAR & ALERTS
+          <h2 className="text-lg font-semibold tracking-tight text-[var(--ink-primary)] mt-1">
+            Autonomous Radar & Alerts
           </h2>
         </div>
 
-        <button
+        <Button
           onClick={() => refetch()}
           disabled={isRefetching}
-          className="btn btn--yellow text-xs font-['Bangers'] tracking-wider self-start sm:self-auto shrink-0"
+          variant="secondary"
+          size="sm"
+          className="text-xs self-start sm:self-auto shrink-0 gap-1.5"
         >
           <RefreshCw
-            className={`w-3.5 h-3.5 mr-1 ${isRefetching ? "animate-spin" : ""}`}
+            className={`w-3.5 h-3.5 ${isRefetching ? "animate-spin" : ""}`}
           />
-          {isRefetching ? "SCANNING GRID..." : "TRIGGER SWEEP"}
-        </button>
+          {isRefetching ? "Sweeping Grid..." : "Trigger Sweep"}
+        </Button>
       </div>
 
-      <div className="relative border-2 border-[#111111] bg-[var(--input-bg)] p-3 shadow-[3px_3px_0_#111111] flex flex-col md:flex-row items-center justify-between gap-3">
-        <div className="flex items-center space-x-3 w-full md:w-auto">
-          <div className="w-3 h-3 rounded-full bg-emerald-500 border border-[#111111] animate-ping" />
-          <span className="font-['Archivo_Black'] text-xs uppercase text-[var(--card-text)]">
-            WEB SENSOR GRID:{" "}
-            <span className="text-[var(--sv-cyan)] font-mono">
-              ALL SYSTEMS NOMINAL
+      <div className="relative border border-[var(--rim)] bg-[var(--surface)] p-2.5 rounded-[var(--radius-md)] flex flex-col md:flex-row items-center justify-between gap-3">
+        <div className="flex items-center space-x-2.5 w-full md:w-auto px-1">
+          <span className="relative flex h-2 w-2">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--clear)] opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-[var(--clear)]"></span>
+          </span>
+          <span className="text-xs font-medium text-[var(--ink-primary)]">
+            Sensor Grid:{" "}
+            <span className="text-[var(--clear)] font-mono text-[11px]">
+              Nominal
             </span>
           </span>
         </div>
 
-        <div className="flex items-center space-x-1.5 overflow-x-auto w-full md:w-auto pb-1 md:pb-0">
+        <div className="flex items-center space-x-1 overflow-x-auto w-full md:w-auto pb-1 md:pb-0">
           {["ALL", "CRITICAL", "WARNING", "INFO"].map((filter) => {
             const active = activeFilter === filter;
             return (
               <button
                 key={filter}
                 onClick={() => setActiveFilter(filter)}
-                className={`text-[10px] font-['Archivo_Black'] uppercase px-2.5 py-1 border-2 border-[#111111] shadow-[2px_2px_0_#111111] transition-all whitespace-nowrap ${
+                className={`text-[11px] font-medium px-2.5 py-1 rounded-[var(--radius-sm)] border transition-all whitespace-nowrap cursor-pointer ${
                   active
-                    ? "bg-[var(--sv-yellow)] text-black font-bold"
-                    : "bg-[var(--card-bg)] text-[var(--card-text)] hover:bg-[var(--sv-cyan)]/20"
+                    ? "bg-[var(--depth)] text-[var(--ink-primary)] border-[var(--rim)] shadow-sm"
+                    : "border-transparent text-[var(--ink-secondary)] hover:text-[var(--ink-primary)] hover:bg-[var(--depth)]/50"
                 }`}
               >
                 {filter}
@@ -99,54 +96,54 @@ export default function AlertsPanel() {
       )}
 
       {!isLoading && filteredAlerts.length > 0 && (
-        <div className="flex flex-col gap-3 max-h-[480px] overflow-y-auto pr-1">
+        <div className="flex flex-col gap-2.5 max-h-[480px] overflow-y-auto pr-1">
           <AnimatePresence>
             {filteredAlerts.map((alert: any, i: number) => {
-              const categoryTag =
-                CATEGORY_TAG[alert.category || "general"] ||
-                CATEGORY_TAG.general;
-              const sevBadge = SEV_CLASS[alert.severity] || "badge--info";
+              const sevBadge = getSeverityBadgeVariant(alert.severity);
 
               return (
                 <motion.div
                   key={alert.id}
-                  initial={{ opacity: 0, y: 12 }}
+                  initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
+                  exit={{ opacity: 0, scale: 0.98 }}
                   transition={{ delay: i * 0.04, duration: 0.2 }}
                   onClick={() => openAlert(alert)}
-                  className="group relative border-3 border-[#111111] bg-[var(--input-bg)] p-4 shadow-[4px_4px_0_#111111] hover:shadow-[6px_6px_0_#111111] hover:translate-y-[-2px] transition-all cursor-pointer rounded-sm"
+                  className="group relative border border-[var(--rim)] bg-[var(--surface)]/50 hover:bg-[var(--surface)] hover:border-[rgba(196,181,253,0.3)] p-4 transition-all cursor-pointer rounded-[var(--radius-md)]"
                 >
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center space-x-2">
-                      <span
-                        className={`badge ${sevBadge} font-['Bangers'] tracking-wider text-xs`}
-                      >
+                      <Badge variant={sevBadge} className="text-[10px]">
                         {alert.severity}
-                      </span>
-                      <span
-                        className={`caption ${categoryTag.class} text-[9px] px-2 py-0.5`}
-                      >
-                        {categoryTag.label}
-                      </span>
+                      </Badge>
+                      {alert.category && (
+                        <span className="text-[10px] font-mono uppercase tracking-wider text-[var(--ink-tertiary)] px-1.5 py-0.5 rounded bg-[var(--depth)] border border-[var(--rim)]">
+                          {alert.category}
+                        </span>
+                      )}
                     </div>
 
-                    <span className="text-[10px] font-mono text-[var(--subtext)]">
-                      {new Date(alert.createdAt).toLocaleString()}
+                    <span className="text-[10px] font-mono text-[var(--ink-tertiary)]">
+                      {new Date(alert.createdAt).toLocaleString(undefined, {
+                        month: "short",
+                        day: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
                     </span>
                   </div>
 
-                  <p className="text-xs font-semibold text-[var(--fg)] leading-relaxed group-hover:text-[var(--sv-cyan)] transition-colors mb-3">
+                  <p className="text-xs font-medium text-[var(--ink-primary)] leading-relaxed group-hover:text-[var(--watchful)] transition-colors mb-3">
                     {alert.message}
                   </p>
 
-                  <div className="flex items-center justify-between pt-2 border-t-2 border-[#111111]/10 text-[10px] font-mono text-[var(--subtext)]">
+                  <div className="flex items-center justify-between pt-2 border-t border-[var(--rim)]/40 text-[10px] font-mono text-[var(--ink-tertiary)]">
                     <span className="truncate max-w-[200px]">
-                      Collector: {alert.collectorId || "c_active"}
+                      Node: {alert.collectorId || "c_active"}
                     </span>
 
-                    <span className="flex items-center font-['Archivo_Black'] uppercase text-[10px] text-[var(--sv-magenta)] group-hover:translate-x-1 transition-transform">
-                      INSPECT POSITION A/B{" "}
+                    <span className="flex items-center text-[10px] font-medium text-[var(--watchful)] group-hover:translate-x-0.5 transition-transform">
+                      Inspect Details{" "}
                       <ChevronRight className="w-3.5 h-3.5 ml-0.5" />
                     </span>
                   </div>
@@ -165,175 +162,101 @@ export default function AlertsPanel() {
  */
 function SpiderWebRadarScanner({ filter }: { filter: string }) {
   return (
-    <div className="relative border-3 border-[#111111] bg-[var(--input-bg)] p-6 shadow-[6px_6px_0_#111111] text-center overflow-hidden rounded-sm flex flex-col items-center justify-center">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(0,229,255,0.06)_0,transparent_75%)] pointer-events-none" />
+    <div className="relative border border-[var(--rim)] bg-[var(--surface)]/30 p-8 text-center overflow-hidden rounded-[var(--radius-md)] flex flex-col items-center justify-center">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(196,181,253,0.05)_0,transparent_75%)] pointer-events-none" />
 
       <div className="flex items-center justify-between w-full mb-3 z-10">
-        <span className="caption caption--yellow text-[10px]">
-          WEB RADAR 10.4 GHz
+        <span className="text-[10px] font-mono uppercase tracking-[0.06em] text-[var(--ink-tertiary)]">
+          RADAR SENSOR 10.4 GHz
         </span>
-        <span className="caption caption--cyan text-[10px]">
-          ALL SENSORS NOMINAL
+        <span className="text-[10px] font-mono text-[var(--clear)] flex items-center gap-1.5">
+          <span className="w-1.5 h-1.5 rounded-full bg-[var(--clear)] animate-pulse" />
+          ALL SYSTEMS NOMINAL
         </span>
       </div>
 
-      <div className="relative w-64 h-64 sm:w-72 sm:h-72 my-2 flex items-center justify-center">
-        <div className="absolute inset-0 rounded-full border-2 border-dashed border-[var(--sv-magenta)]/30 animate-[ping_4s_cubic-bezier(0,0,0.2,1)_infinite]" />
-        <div className="absolute inset-6 rounded-full border-2 border-cyan-500/20" />
-        <div className="absolute inset-14 rounded-full border-2 border-yellow-500/20" />
+      <div className="relative w-56 h-56 sm:w-64 sm:h-64 my-4 flex items-center justify-center">
+        {/* Subtle radar rings */}
+        <div className="absolute inset-0 rounded-full border border-[var(--rim)]" />
+        <div className="absolute inset-8 rounded-full border border-[var(--rim)]/70" />
+        <div className="absolute inset-16 rounded-full border border-[var(--rim)]/50" />
+        <div className="absolute inset-24 rounded-full border border-[var(--rim)]/30" />
 
-        <div className="absolute inset-0 bg-[conic-gradient(from_0deg,transparent_0_310deg,rgba(0,229,255,0.45)_360deg)] rounded-full animate-[spin_3s_linear_infinite] pointer-events-none" />
+        {/* Sweep gradient */}
+        <div className="absolute inset-0 bg-[conic-gradient(from_0deg,transparent_0_300deg,rgba(196,181,253,0.22)_360deg)] rounded-full animate-[spin_4s_linear_infinite] pointer-events-none" />
 
         <svg
-          viewBox="0 0 300 300"
-          className="w-full h-full relative z-10 drop-shadow-[2px_2px_0_#111111]"
+          viewBox="0 0 200 200"
+          className="w-full h-full relative z-10"
         >
+          {/* Crosshairs */}
           <line
-            x1="150"
-            y1="10"
-            x2="150"
-            y2="290"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            className="text-[var(--card-text)] opacity-40"
+            x1="100"
+            y1="5"
+            x2="100"
+            y2="195"
+            stroke="var(--rim)"
+            strokeWidth="1"
+            strokeDasharray="2 3"
           />
           <line
-            x1="10"
-            y1="150"
-            x2="290"
-            y2="150"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            className="text-[var(--card-text)] opacity-40"
-          />
-          <line
-            x1="51"
-            y1="51"
-            x2="249"
-            y2="249"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            className="text-[var(--card-text)] opacity-40"
-          />
-          <line
-            x1="249"
-            y1="51"
-            x2="51"
-            y2="249"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            className="text-[var(--card-text)] opacity-40"
+            x1="5"
+            y1="100"
+            x2="195"
+            y2="100"
+            stroke="var(--rim)"
+            strokeWidth="1"
+            strokeDasharray="2 3"
           />
 
-          <polygon
-            points="150,20 241,58 280,150 241,241 150,280 58,241 20,150 58,58"
-            fill="none"
-            stroke="var(--sv-cyan)"
-            strokeWidth="2"
-            strokeDasharray="4 2"
-          />
-          <polygon
-            points="150,60 213,86 240,150 213,213 150,240 86,213 60,150 86,86"
-            fill="none"
-            stroke="var(--sv-magenta)"
-            strokeWidth="1.8"
-          />
-          <polygon
-            points="150,100 185,114 200,150 185,185 150,200 114,185 100,150 114,114"
-            fill="none"
-            stroke="var(--sv-yellow)"
-            strokeWidth="1.5"
-          />
-          <polygon
-            points="150,125 167,132 175,150 167,167 150,175 132,167 125,150 132,132"
-            fill="none"
-            stroke="var(--sv-cyan)"
-            strokeWidth="1.2"
-          />
-
+          {/* Node pings */}
           <circle
-            cx="213"
-            cy="86"
-            r="6"
-            fill="#FFD400"
-            stroke="#111111"
-            strokeWidth="2"
-            className="animate-bounce"
-          />
-          <circle
-            cx="86"
-            cy="213"
-            r="6"
-            fill="#00E5FF"
-            stroke="#111111"
-            strokeWidth="2"
+            cx="145"
+            cy="65"
+            r="3"
+            fill="var(--watchful)"
             className="animate-pulse"
           />
           <circle
-            cx="240"
-            cy="150"
-            r="5"
-            fill="#FF2E63"
-            stroke="#111111"
-            strokeWidth="2"
-          />
-          <circle
             cx="60"
-            cy="150"
-            r="5"
-            fill="#10B981"
-            stroke="#111111"
-            strokeWidth="2"
+            cy="135"
+            r="3"
+            fill="var(--clear)"
+            className="animate-ping"
           />
-
           <circle
-            cx="150"
+            cx="130"
             cy="150"
-            r="22"
-            fill="#111111"
-            stroke="var(--sv-magenta)"
-            strokeWidth="3"
-          />
-          <path
-            d="M150 138 C144 138 140 144 140 150 C140 156 144 162 150 162 C156 162 160 156 160 150 C160 144 156 138 150 138 Z"
-            fill="var(--sv-magenta)"
+            r="2.5"
+            fill="var(--ink-secondary)"
           />
 
-          <path
-            d="M140 144 Q130 135 125 142 M160 144 Q170 135 175 142"
-            stroke="var(--sv-yellow)"
-            strokeWidth="2"
-            fill="none"
+          {/* Center core */}
+          <circle
+            cx="100"
+            cy="100"
+            r="5"
+            fill="var(--depth)"
+            stroke="var(--watchful)"
+            strokeWidth="1.5"
           />
-          <path
-            d="M140 150 Q126 150 120 156 M160 150 Q174 150 180 156"
-            stroke="var(--sv-yellow)"
-            strokeWidth="2"
-            fill="none"
-          />
-          <path
-            d="M140 156 Q130 165 125 160 M160 156 Q170 165 175 160"
-            stroke="var(--sv-yellow)"
-            strokeWidth="2"
-            fill="none"
+          <circle
+            cx="100"
+            cy="100"
+            r="2"
+            fill="var(--watchful)"
           />
         </svg>
-
-        <div className="absolute -bottom-2 text-center z-20">
-          <span className="ono text-3xl sm:text-4xl tracking-widest text-[var(--sv-magenta)] drop-shadow-[3px_3px_0_#111111] animate-pulse">
-            BZZZZT!
-          </span>
-        </div>
       </div>
 
-      <div className="mt-3 z-10">
-        <h4 className="font-['Archivo_Black'] text-sm uppercase tracking-wider text-[var(--sv-yellow)] mb-1">
-          RADAR SWEEP COMPLETE • GRID SECURE
+      <div className="mt-2 z-10">
+        <h4 className="text-sm font-semibold tracking-tight text-[var(--ink-primary)] mb-1">
+          Radar Sweep Complete • Grid Secure
         </h4>
-        <p className="text-xs font-mono text-[var(--subtext)] max-w-md mx-auto">
+        <p className="text-xs text-[var(--ink-secondary)] max-w-sm mx-auto leading-relaxed">
           {filter !== "ALL"
             ? `No active policy diffs or hazards matching filter "${filter}".`
-            : "No active legal policy diffs or product recall hazards detected across all monitored web nodes."}
+            : "No active legal policy diffs or product recall hazards detected across monitored targets."}
         </p>
       </div>
     </div>
@@ -342,15 +265,15 @@ function SpiderWebRadarScanner({ filter }: { filter: string }) {
 
 function ScannerSkeletonRows() {
   return (
-    <div className="flex flex-col gap-3 py-2">
+    <div className="flex flex-col gap-2.5 py-1">
       {[...Array(3)].map((_, i) => (
         <div
           key={i}
-          className="relative overflow-hidden border-2 border-[#111111] bg-[var(--input-bg)] p-4 shadow-[3px_3px_0_#111111] h-24"
+          className="relative overflow-hidden border border-[var(--rim)] bg-[var(--surface)]/50 p-4 rounded-[var(--radius-md)] h-20"
         >
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[var(--sv-cyan)]/10 to-transparent animate-[shimmer_1.5s_infinite]" />
-          <div className="h-4 w-24 bg-gray-400/20 border border-[#111111] mb-2" />
-          <div className="h-3 w-3/4 bg-gray-400/20 border border-[#111111]" />
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[rgba(196,181,253,0.06)] to-transparent animate-[shimmer_1.5s_infinite]" />
+          <div className="h-3.5 w-24 bg-[var(--rim)] rounded mb-2.5" />
+          <div className="h-3 w-3/4 bg-[var(--rim)]/60 rounded" />
         </div>
       ))}
     </div>

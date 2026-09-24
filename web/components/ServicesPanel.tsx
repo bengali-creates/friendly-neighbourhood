@@ -129,7 +129,7 @@ export default function ServicesPanel() {
           </div>
         )}
 
-        <div className="space-y-3">
+        <div className="space-y-2.5">
           {collectors.map((c: any, i: number) => {
             const Icon = SOURCE_ICON[c.sourceType] ?? Globe;
             const isScanningThis = activeRun?.collectorId === c.collectorId;
@@ -140,39 +140,39 @@ export default function ServicesPanel() {
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: i * 0.05 }}
-                className="flex items-center gap-3 p-3 bg-[var(--input-bg)] border-2 border-[var(--card-border)] shadow-[3px_3px_0_var(--shadow-color)] hover:shadow-[5px_5px_0_var(--shadow-color)] transition-all rounded-md"
+                className="flex items-center gap-3 p-3 bg-[var(--surface)] border border-[var(--rim)] hover:border-[rgba(196,181,253,0.3)] transition-all rounded-[var(--radius-sm)]"
               >
-                <div className="w-8 h-8 rounded bg-[var(--sv-cyan)]/20 border border-[var(--card-border)] flex items-center justify-center shrink-0">
-                  <Icon className="w-4 h-4 text-[var(--sv-cyan)]" />
+                <div className="w-8 h-8 rounded-[var(--radius-sm)] bg-[var(--watchful-fill)] border border-[rgba(196,181,253,0.2)] flex items-center justify-center shrink-0">
+                  <Icon className="w-4 h-4 text-[var(--watchful)]" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs font-['Archivo_Black'] uppercase text-[var(--card-text)] truncate">
+                  <p className="text-xs font-medium text-[var(--ink-primary)] truncate">
                     {c.name}
                   </p>
-                  <p className="text-[10px] opacity-70 font-mono truncate text-[var(--sv-cyan)]">
+                  <p className="text-[10px] font-mono truncate text-[var(--ink-tertiary)] mt-0.5">
                     {c.url}
                   </p>
                 </div>
                 <div className="flex items-center gap-1.5 shrink-0">
                   <Link href={`/scrapers/${c.collectorId}`}>
                     <Button
-                      variant="ghost"
+                      variant="secondary"
                       size="sm"
-                      className="font-['Bangers'] text-xs tracking-wider border border-[var(--card-border)] bg-[var(--card-bg)] hover:bg-[var(--sv-cyan)] hover:text-black"
+                      className="text-xs h-7 px-2.5"
                       title="View Scraped Key-Value Data & Baseline Diffs"
                     >
-                      <Eye className="w-3 h-3 mr-1" /> VIEW
+                      <Eye className="w-3 h-3 mr-1" /> View
                     </Button>
                   </Link>
                   <Button
-                    variant="yellow"
+                    variant="default"
                     size="sm"
                     onClick={() => handleRun(c)}
                     disabled={runAgent.isPending || isScanningThis}
-                    className="font-['Bangers'] text-xs tracking-wider"
+                    className="text-xs h-7 px-2.5 font-semibold"
                   >
                     <Play className="w-3 h-3 mr-1" />{" "}
-                    {isScanningThis ? "SCANNING..." : "SCAN"}
+                    {isScanningThis ? "Scanning..." : "Scan"}
                   </Button>
                 </div>
               </motion.div>

@@ -32,12 +32,12 @@ export default function PillNav({
   const { theme } = useStore();
   const isDark = theme === "dark";
 
-  // Dynamic comic theme color tokens based on active dark/light theme mode
-  const baseColor = isDark ? "#141026" : "#FFFFFF";
-  const pillColor = isDark ? "#0B0714" : "#F4EBD9";
-  const textColor = isDark ? "#EDEAE0" : "#0B0714";
-  const hoveredPillTextColor = isDark ? "#FFFFFF" : "#0B0714";
-  const accentColor = "#FF2E63";
+  // Dynamic theme color tokens based on warm-dark minimalist system
+  const baseColor = isDark ? "var(--depth)" : "#FFFFFF";
+  const pillColor = "transparent";
+  const textColor = isDark ? "var(--ink-secondary)" : "#57534E";
+  const hoveredPillTextColor = isDark ? "var(--ink-primary)" : "#1C1917";
+  const hoverCircleBg = isDark ? "rgba(30, 26, 39, 0.85)" : "#EFECE6";
 
   const circleRefs = useRef<Array<HTMLSpanElement | null>>([]);
   const tlRefs = useRef<Array<gsap.core.Timeline | null>>([]);
@@ -151,27 +151,22 @@ export default function PillNav({
     "--pill-bg": pillColor,
     "--hover-text": hoveredPillTextColor,
     "--pill-text": textColor,
-    "--accent": accentColor,
-    "--nav-h": "44px",
+    "--nav-h": "40px",
     "--pill-pad-x": "12px",
-    "--pill-gap": "6px",
+    "--pill-gap": "4px",
   } as React.CSSProperties;
 
   return (
     <nav className={`w-full ${className}`} aria-label="Primary" style={cssVars}>
       <div
-        className={`relative items-stretch rounded-lg p-2.5 border-3 border-black ${
-          isDark
-            ? "bg-[#141026] text-[#EDEAE0] shadow-[6px_6px_0_#000000]"
-            : "bg-white text-[#0B0714] shadow-[6px_6px_0_#0B0714]"
-        }`}
+        className="relative items-stretch rounded-[var(--radius-lg)] p-2 border border-[var(--rim)] bg-[var(--depth)] text-[var(--ink-primary)] transition-colors duration-200"
       >
         <ul
           role="menubar"
           className={`list-none m-0 p-0 flex ${
             orientation === "vertical"
-              ? "flex-col gap-2 w-full"
-              : "flex-row gap-2.5 items-center"
+              ? "flex-col gap-1.5 w-full"
+              : "flex-row gap-2 items-center"
           }`}
         >
           {items.map((item, i) => {
@@ -179,30 +174,28 @@ export default function PillNav({
             const Icon = item.icon;
 
             const pillStyle: React.CSSProperties = {
-              background: isActive ? accentColor : "var(--pill-bg)",
-              color: isActive ? "#FFFFFF" : "var(--pill-text)",
               paddingLeft: "var(--pill-pad-x)",
               paddingRight: "var(--pill-pad-x)",
             };
 
             return (
-              <li key={item.href} role="none" className="flex w-full h-[44px]">
+              <li key={item.href} role="none" className="flex w-full h-[40px]">
                 <button
                   role="menuitem"
                   onClick={() => onItemClick?.(i, item)}
                   onMouseEnter={() => handleEnter(i)}
                   onMouseLeave={() => handleLeave(i)}
-                  className={`relative overflow-hidden inline-flex items-center justify-between w-full h-full rounded-md border-2 border-black box-border font-bold text-xs uppercase tracking-wider cursor-pointer transition-all duration-150 ${
+                  className={`group relative overflow-hidden inline-flex items-center justify-between w-full h-full rounded-[var(--radius-sm)] border box-border font-medium text-xs tracking-normal cursor-pointer transition-all duration-150 ${
                     isActive
-                      ? "shadow-[3px_3px_0_#000000] comic-panel-notched"
-                      : "shadow-[2px_2px_0_#000000] hover:-translate-y-0.5"
+                      ? "border-[rgba(196,181,253,0.3)] bg-[var(--surface)] text-[var(--ink-primary)] shadow-sm"
+                      : "border-transparent text-[var(--ink-secondary)] hover:text-[var(--ink-primary)] hover:bg-[var(--surface)]/60"
                   }`}
                   style={pillStyle}
                 >
                   <span
                     className="hover-circle absolute left-1/2 bottom-0 rounded-full z-[1] block pointer-events-none"
                     style={{
-                      background: accentColor,
+                      background: hoverCircleBg,
                       willChange: "transform",
                     }}
                     aria-hidden="true"
@@ -213,11 +206,11 @@ export default function PillNav({
 
                   <span className="label-stack relative flex items-center justify-between w-full z-[2] px-1">
                     <span className="pill-label relative z-[2] inline-flex items-center gap-2.5">
-                      <Icon className="w-4 h-4 shrink-0" />
-                      <span className="font-['Bangers'] text-sm tracking-wider text-[var(--sv-yellow)]">
+                      <Icon className={`w-4 h-4 shrink-0 transition-colors ${isActive ? "text-[var(--watchful)]" : "text-[var(--ink-tertiary)] group-hover:text-[var(--ink-secondary)]"}`} />
+                      <span className="font-mono text-[10px] text-[var(--ink-tertiary)]">
                         {String(i + 1).padStart(2, "0")}
                       </span>
-                      <span className="font-['Archivo_Black'] text-[11px] truncate">
+                      <span className="text-xs font-medium truncate">
                         {item.label}
                       </span>
                     </span>
@@ -230,11 +223,11 @@ export default function PillNav({
                       }}
                       aria-hidden="true"
                     >
-                      <Icon className="w-4 h-4 shrink-0" />
-                      <span className="font-['Bangers'] text-sm tracking-wider text-white">
+                      <Icon className={`w-4 h-4 shrink-0 transition-colors ${isActive ? "text-[var(--watchful)]" : "text-[var(--ink-primary)]"}`} />
+                      <span className="font-mono text-[10px] text-[var(--ink-tertiary)]">
                         {String(i + 1).padStart(2, "0")}
                       </span>
-                      <span className="font-['Archivo_Black'] text-[11px] truncate">
+                      <span className="text-xs font-medium truncate">
                         {item.label}
                       </span>
                     </span>
@@ -242,7 +235,7 @@ export default function PillNav({
 
                   {isActive && (
                     <span
-                      className="absolute right-2 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full z-[4] bg-[#FFD400] border border-black"
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full z-[4] bg-[var(--watchful)] shadow-[0_0_8px_rgba(196,181,253,0.6)]"
                       aria-hidden="true"
                     />
                   )}

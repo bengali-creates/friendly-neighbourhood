@@ -3,6 +3,9 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useStore } from "@/lib/store";
 import { useWatchUrl } from "@/lib/queries";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Plus, X, Globe, Radio } from "lucide-react";
 
 export default function AddWatchForm() {
   const [open, setOpen] = useState(false);
@@ -31,13 +34,14 @@ export default function AddWatchForm() {
   };
 
   return (
-    <div className="comic-panel bg-[var(--card-bg)] border-3 border-black shadow-[6px_6px_0_#000000] p-4 flex flex-col gap-3">
-      <button
-        className="comic-burst-btn btn btn--primary w-full py-2.5 text-xs font-['Bangers'] tracking-wider bg-[#FF2E63] text-white border-2 border-black shadow-[3px_3px_0_#000000]"
+    <div className="rounded-[var(--radius-lg)] bg-[var(--depth)] border border-[var(--rim)] p-4 flex flex-col gap-3 transition-colors">
+      <Button
+        variant={open ? "secondary" : "default"}
+        className="w-full py-2.5 text-xs font-medium justify-center gap-2"
         onClick={() => setOpen((v) => !v)}
       >
-        {open ? "✕ CLOSE FORM" : "+ WATCH NEW URL"}
-      </button>
+        {open ? <><X className="w-4 h-4" /> Close Watch Form</> : <><Plus className="w-4 h-4" /> Add Watch Target</>}
+      </Button>
 
       <AnimatePresence>
         {open && (
@@ -48,43 +52,58 @@ export default function AddWatchForm() {
             exit={{ opacity: 0, height: 0 }}
             className="overflow-hidden"
           >
-            <div className="flex flex-col gap-3 pt-3">
-              <input
-                className="input bg-[var(--input-bg)] border-2 border-black text-[var(--input-text)] text-xs"
-                placeholder="Target URL (e.g. https://instagram.com/legal/privacy)"
-                value={url}
-                onChange={(e) => setUrl(e.target.value)}
-                required
-              />
-              <input
-                className="input bg-[var(--input-bg)] border-2 border-black text-[var(--input-text)] text-xs"
-                placeholder="Custom Label / Name (optional)"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-              />
-              <textarea
-                className="input bg-[var(--input-bg)] border-2 border-black text-[var(--input-text)] text-xs h-16 resize-none"
-                placeholder="Custom AI Focus Prompt (e.g. 'Focus on AI training rules & opt-out steps')"
-                value={customPrompt}
-                onChange={(e) => setCustomPrompt(e.target.value)}
-              />
-              <select
-                className="input bg-[var(--input-bg)] border-2 border-black text-[var(--input-text)] text-xs cursor-pointer"
-                value={sourceType}
-                onChange={(e) => setSourceType(e.target.value)}
-              >
-                <option value="tos" className="bg-[var(--input-bg)]">Terms of Service</option>
-                <option value="recall" className="bg-[var(--input-bg)]">Product Recall</option>
-                <option value="civic" className="bg-[var(--input-bg)]">Civic / Government</option>
-                <option value="search" className="bg-[var(--input-bg)]">General Search</option>
-              </select>
-              <button
-                className="comic-burst-btn btn btn--yellow w-full py-2 text-xs font-['Bangers'] tracking-wider bg-[#FFD400] text-black border-2 border-black shadow-[3px_3px_0_#000000]"
+            <div className="flex flex-col gap-3 pt-2">
+              <div>
+                <label className="text-[10px] font-mono uppercase tracking-wider text-[var(--ink-tertiary)] block mb-1">Target URL</label>
+                <Input
+                  placeholder="https://example.com/legal/privacy"
+                  value={url}
+                  onChange={(e) => setUrl(e.target.value)}
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="text-[10px] font-mono uppercase tracking-wider text-[var(--ink-tertiary)] block mb-1">Label (Optional)</label>
+                <Input
+                  placeholder="e.g. Adobe Terms of Service"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                />
+              </div>
+
+              <div>
+                <label className="text-[10px] font-mono uppercase tracking-wider text-[var(--ink-tertiary)] block mb-1">Focus Prompt</label>
+                <textarea
+                  className="w-full rounded-[var(--radius-sm)] border border-[var(--rim)] bg-[var(--surface)] px-3 py-2 text-xs text-[var(--ink-primary)] placeholder:text-[var(--ink-tertiary)] focus-visible:outline-none focus-visible:border-[var(--watchful)] focus-visible:ring-2 focus-visible:ring-[rgba(196,181,253,0.2)] h-16 resize-none transition-all"
+                  placeholder="Focus on AI training terms, copyright assignation & opt-out provisions"
+                  value={customPrompt}
+                  onChange={(e) => setCustomPrompt(e.target.value)}
+                />
+              </div>
+
+              <div>
+                <label className="text-[10px] font-mono uppercase tracking-wider text-[var(--ink-tertiary)] block mb-1">Source Category</label>
+                <select
+                  className="w-full rounded-[var(--radius-sm)] border border-[var(--rim)] bg-[var(--surface)] px-3 py-1.5 text-xs text-[var(--ink-primary)] focus-visible:outline-none focus-visible:border-[var(--watchful)] cursor-pointer transition-all"
+                  value={sourceType}
+                  onChange={(e) => setSourceType(e.target.value)}
+                >
+                  <option value="tos">Terms of Service / Privacy</option>
+                  <option value="recall">Product Recall / Consumer Safety</option>
+                  <option value="civic">Civic / Regulatory Notice</option>
+                  <option value="search">General Web Intelligence</option>
+                </select>
+              </div>
+
+              <Button
+                variant="default"
+                className="w-full py-2 text-xs font-semibold mt-1"
                 type="submit"
                 disabled={watch.isPending}
               >
-                {watch.isPending ? "ADDING SCRAPER..." : "ADD TO RADAR"}
-              </button>
+                {watch.isPending ? "Connecting to Radar..." : "Add to Autonomous Radar"}
+              </Button>
             </div>
           </motion.form>
         )}
