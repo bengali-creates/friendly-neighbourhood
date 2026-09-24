@@ -144,39 +144,39 @@ export default function ScraperDetailPage({
           <ArrowLeft className="w-4 h-4" /> BACK TO MONITORED SERVICES
         </Link>
         <div className="flex items-center gap-2">
-          <span className="caption caption--yellow text-[9px]">
+          <span className="text-[10px] font-mono uppercase tracking-[0.08em] text-[var(--watchful)] px-2 py-0.5 rounded bg-[var(--surface)] border border-[var(--rim)]">
             LIVE TELEMETRY VIEW
           </span>
         </div>
       </div>
 
-      <div className="comic-panel bg-[var(--card-bg)] border-3 border-black shadow-[6px_6px_0_#000000] p-5 flex flex-col gap-4">
+      <div className="rounded-[var(--radius-lg)] bg-[var(--depth)] border border-[var(--rim)] p-5 md:p-6 flex flex-col gap-4 transition-colors">
         <div className="flex items-start justify-between flex-wrap gap-4">
-          <div className="space-y-1 max-w-2xl">
+          <div className="space-y-1.5 max-w-2xl">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="caption caption--cyan text-[10px]">
+              <span className="text-[10px] font-mono uppercase tracking-[0.08em] text-[var(--watchful)] px-2 py-0.5 rounded bg-[var(--surface)] border border-[var(--rim)]">
                 COLLECTOR: {collectorId}
               </span>
               <button
                 onClick={copyId}
-                className="inline-flex items-center gap-1 text-[10px] font-mono text-[var(--subtext)] hover:text-[var(--sv-cyan)]"
+                className="inline-flex items-center gap-1 text-[10px] font-mono text-[var(--ink-tertiary)] hover:text-[var(--watchful)] transition-colors cursor-pointer"
                 title="Copy Collector ID"
               >
                 <Copy className="w-3 h-3" />
                 {copied ? "COPIED!" : "COPY ID"}
               </button>
             </div>
-            <h1 className="font-['Bangers'] text-3xl tracking-wide text-[var(--fg)]">
+            <h1 className="text-xl md:text-2xl font-semibold tracking-tight text-[var(--ink-primary)]">
               {collector?.name || documentTitle}
             </h1>
             {collector?.url && (
-              <div className="flex items-center gap-2 text-xs font-mono text-[var(--sv-cyan)] truncate">
-                <Globe className="w-3.5 h-3.5 shrink-0" />
+              <div className="flex items-center gap-2 text-xs font-mono text-[var(--ink-secondary)] truncate">
+                <Globe className="w-3.5 h-3.5 shrink-0 text-[var(--watchful)]" />
                 <a
                   href={collector.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="hover:underline truncate"
+                  className="hover:underline hover:text-[var(--ink-primary)] truncate transition-colors"
                 >
                   {collector.url}
                 </a>
@@ -187,125 +187,115 @@ export default function ScraperDetailPage({
 
           <div className="flex items-center gap-2">
             <Button
-              variant="yellow"
+              variant="default"
               size="sm"
               onClick={handleScan}
               disabled={isScanning}
-              className="font-['Bangers'] text-xs tracking-wider px-4 active:scale-[0.98] transition-transform"
+              className="text-xs font-semibold px-4"
             >
               <RefreshCw
                 className={`w-3.5 h-3.5 mr-1.5 ${isScanning ? "animate-spin" : ""}`}
               />
-              {isScanning ? "SCANNING…" : "TRIGGER SCAN"}
+              {isScanning ? "Scanning…" : "Trigger Scan"}
             </Button>
             <Button
-              variant="cyan"
+              variant="secondary"
               size="sm"
               onClick={handleHeal}
               disabled={isHealing}
-              className="font-['Bangers'] text-xs tracking-wider px-4 active:scale-[0.98] transition-transform"
+              className="text-xs px-4"
             >
               <Zap className="w-3.5 h-3.5 mr-1.5" />
-              {isHealing ? "HEALING…" : "AUTO HEAL"}
+              {isHealing ? "Healing…" : "Auto Heal"}
             </Button>
           </div>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-3 border-t-2 border-black/20 font-mono text-xs">
-          <div className="p-2 bg-[var(--input-bg)] border-2 border-black shadow-[2px_2px_0_#000000]">
-            <div className="text-[9px] uppercase font-['Archivo_Black'] text-[var(--subtext)]">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-3 border-t border-[var(--rim)] font-mono text-xs">
+          <div className="p-3 bg-[var(--surface)] border border-[var(--rim)] rounded-[var(--radius-sm)]">
+            <div className="text-[10px] uppercase text-[var(--ink-tertiary)]">
               Total Snapshots
             </div>
-            <div className="font-bold text-[var(--fg)] mt-0.5">
+            <div className="font-semibold text-sm text-[var(--ink-primary)] mt-0.5">
               {snapshots.length} Baselines
             </div>
           </div>
-          <div className="p-2 bg-[var(--input-bg)] border-2 border-black shadow-[2px_2px_0_#000000]">
-            <div className="text-[9px] uppercase font-['Archivo_Black'] text-[var(--subtext)]">
-              Extracted Sections
+
+          <div className="p-3 bg-[var(--surface)] border border-[var(--rim)] rounded-[var(--radius-sm)]">
+            <div className="text-[10px] uppercase text-[var(--ink-tertiary)]">
+              Active Clauses
             </div>
-            <div className="font-bold text-[var(--sv-cyan)] mt-0.5">
-              {Object.keys(sections).length} Keys
-            </div>
-          </div>
-          <div className="p-2 bg-[var(--input-bg)] border-2 border-black shadow-[2px_2px_0_#000000]">
-            <div className="text-[9px] uppercase font-['Archivo_Black'] text-[var(--subtext)]">
-              Last Scraped
-            </div>
-            <div className="font-bold text-[var(--fg)] mt-0.5 text-[11px] truncate">
-              {latestSnapshot?.scrapedAt
-                ? new Date(latestSnapshot.scrapedAt).toLocaleString()
-                : "Just now"}
+            <div className="font-semibold text-sm text-[var(--clear)] mt-0.5">
+              {Object.keys(sections).length} Extracted
             </div>
           </div>
-          <div className="p-2 bg-[var(--input-bg)] border-2 border-black shadow-[2px_2px_0_#000000]">
-            <div className="text-[9px] uppercase font-['Archivo_Black'] text-[var(--subtext)]">
-              Deduplication
+
+          <div className="p-3 bg-[var(--surface)] border border-[var(--rim)] rounded-[var(--radius-sm)]">
+            <div className="text-[10px] uppercase text-[var(--ink-tertiary)]">
+              Self-Heals Applied
             </div>
-            <div className="font-bold text-emerald-400 mt-0.5 text-[11px] flex items-center">
-              <CheckCircle2 className="w-3 h-3 mr-1" /> Active
+            <div className="font-semibold text-sm text-[var(--watchful)] mt-0.5">
+              {collector?.healCount ?? 0} Events
+            </div>
+          </div>
+
+          <div className="p-3 bg-[var(--surface)] border border-[var(--rim)] rounded-[var(--radius-sm)]">
+            <div className="text-[10px] uppercase text-[var(--ink-tertiary)]">
+              Extraction Health
+            </div>
+            <div className="font-semibold text-sm text-[var(--clear)] mt-0.5 flex items-center gap-1">
+              <CheckCircle2 className="w-3.5 h-3.5" /> 100% Nominal
             </div>
           </div>
         </div>
       </div>
 
-      <div className="flex items-center gap-2 border-b-2 border-black pb-2">
+      <div className="flex items-center gap-2 border-b border-[var(--rim)] pb-2">
         <button
           onClick={() => setActiveTab("kv")}
-          className={`btn text-xs font-['Bangers'] tracking-wider px-4 py-2 flex items-center gap-1.5 transition-all ${
+          className={`text-xs font-medium px-3.5 py-1.5 rounded-[var(--radius-sm)] border flex items-center gap-1.5 transition-all cursor-pointer ${
             activeTab === "kv"
-              ? "bg-[#FFD400] text-black border-2 border-black shadow-[3px_3px_0_#000000]"
-              : "bg-[var(--card-bg)] text-[var(--fg)] border-2 border-black opacity-70 hover:opacity-100"
+              ? "bg-[var(--surface)] text-[var(--ink-primary)] border-[rgba(196,181,253,0.3)] shadow-sm"
+              : "border-transparent text-[var(--ink-secondary)] hover:text-[var(--ink-primary)] hover:bg-[var(--surface)]/50"
           }`}
         >
-          <ListFilter className="w-3.5 h-3.5" /> VALUE TABLE
+          <ListFilter className="w-3.5 h-3.5" /> Value Table
         </button>
 
         <button
           onClick={() => setActiveTab("diff")}
-          className={`btn text-xs font-['Bangers'] tracking-wider px-4 py-2 flex items-center gap-1.5 transition-all ${
+          className={`text-xs font-medium px-3.5 py-1.5 rounded-[var(--radius-sm)] border flex items-center gap-1.5 transition-all cursor-pointer ${
             activeTab === "diff"
-              ? "bg-[#00E5FF] text-black border-2 border-black shadow-[3px_3px_0_#000000]"
-              : "bg-[var(--card-bg)] text-[var(--fg)] border-2 border-black opacity-70 hover:opacity-100"
+              ? "bg-[var(--surface)] text-[var(--ink-primary)] border-[rgba(196,181,253,0.3)] shadow-sm"
+              : "border-transparent text-[var(--ink-secondary)] hover:text-[var(--ink-primary)] hover:bg-[var(--surface)]/50"
           }`}
         >
-          <Diff className="w-3.5 h-3.5" /> DIFFERENTIAL ANALYSIS
+          <Diff className="w-3.5 h-3.5" /> Differential Analysis
         </button>
-
-        {/* <button
-          onClick={() => setActiveTab("raw")}
-          className={`btn text-xs font-['Bangers'] tracking-wider px-4 py-2 flex items-center gap-1.5 transition-all ${
-            activeTab === "raw"
-              ? "bg-[#FF2E63] text-white border-2 border-black shadow-[3px_3px_0_#000000]"
-              : "bg-[var(--card-bg)] text-[var(--fg)] border-2 border-black opacity-70 hover:opacity-100"
-          }`}
-        >
-          <Database className="w-3.5 h-3.5" /> RAW JSON TELEMETRY
-        </button> */}
       </div>
 
       {activeTab === "kv" && (
-        <div className="comic-panel bg-[var(--card-bg)] border-3 border-black shadow-[6px_6px_0_#000000] p-5">
+        <div className="rounded-[var(--radius-lg)] bg-[var(--depth)] border border-[var(--rim)] p-5">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="font-['Bangers'] text-xl tracking-wide text-[var(--fg)]">
-              EXTRACTED DOCUMENT SECTIONS ({Object.keys(sections).length})
+            <h2 className="text-base font-semibold tracking-tight text-[var(--ink-primary)]">
+              Extracted Document Sections ({Object.keys(sections).length})
             </h2>
-            <span className="text-[10px] font-mono text-[var(--subtext)]">
+            <span className="text-[10px] font-mono text-[var(--ink-tertiary)]">
               Click any row to expand full clause
             </span>
           </div>
 
           {Object.keys(sections).length === 0 ? (
-            <div className="p-8 text-center bg-[var(--input-bg)] border-2 border-dashed border-black/30 font-mono text-xs text-[var(--subtext)]">
-              No scraped data available yet. Click "TRIGGER SCAN" above to fetch
+            <div className="p-8 text-center bg-[var(--surface)]/30 border border-dashed border-[var(--rim)] rounded-[var(--radius-md)] font-mono text-xs text-[var(--ink-secondary)]">
+              No scraped data available yet. Click "Trigger Scan" above to fetch
               document text.
             </div>
           ) : (
-            <div className="border-2 border-black overflow-hidden shadow-[4px_4px_0_#000000]">
+            <div className="border border-[var(--rim)] rounded-[var(--radius-md)] overflow-hidden">
               <table className="w-full text-left font-mono text-xs border-collapse">
                 <thead>
-                  <tr className="bg-[var(--sv-yellow)] text-black border-b-2 border-black font-['Archivo_Black'] text-[11px] uppercase">
-                    <th className="p-3 border-r-2 border-black w-1/3">
+                  <tr className="bg-[var(--surface)] text-[var(--ink-secondary)] border-b border-[var(--rim)] text-[10px] uppercase tracking-[0.08em]">
+                    <th className="p-3 border-r border-[var(--rim)] w-1/3">
                       Policy Section / Key
                     </th>
                     <th className="p-3">Extracted Clause Content & Links</th>
@@ -360,29 +350,29 @@ export default function ScraperDetailPage({
       )}
 
       {activeTab === "diff" && (
-        <div className="comic-panel bg-[var(--card-bg)] border-3 border-black shadow-[6px_6px_0_#000000] p-5 space-y-4">
+        <div className="rounded-[var(--radius-lg)] bg-[var(--depth)] border border-[var(--rim)] p-5 space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="font-['Bangers'] text-xl tracking-wide text-[var(--fg)]">
-              DIFFERENTIAL SNAPSHOT COMPARISON
+            <h2 className="text-base font-semibold tracking-tight text-[var(--ink-primary)]">
+              Differential Snapshot Comparison
             </h2>
-            <span className="caption caption--cyan text-[9px]">
+            <span className="text-[10px] font-mono text-[var(--watchful)] px-2 py-0.5 rounded bg-[var(--surface)] border border-[var(--rim)]">
               BASELINE VERIFICATION
             </span>
           </div>
 
           {!previousSnapshot ? (
-            <div className="p-6 bg-[var(--input-bg)] border-2 border-black shadow-[3px_3px_0_#000000] text-center font-mono text-xs text-[var(--subtext)]">
-              <CheckCircle2 className="w-6 h-6 text-emerald-400 mx-auto mb-2" />
+            <div className="p-6 bg-[var(--surface)]/40 border border-[var(--rim)] rounded-[var(--radius-md)] text-center font-mono text-xs text-[var(--ink-secondary)]">
+              <CheckCircle2 className="w-6 h-6 text-[var(--clear)] mx-auto mb-2" />
               Initial baseline snapshot recorded. Subsequent runs will display
               fine-grained line-by-line diffs here.
             </div>
           ) : (
             <div className="space-y-3 font-mono text-xs">
-              <div className="p-3 bg-emerald-500/10 border-2 border-emerald-500 text-emerald-400">
+              <div className="p-3 bg-[var(--clear-fill)] border border-[rgba(110,231,183,0.3)] text-[var(--clear)] rounded-[var(--radius-sm)]">
                 + Added lines: 0 | - Removed lines: 0 | Baseline Verified
                 Identical
               </div>
-              <div className="p-4 bg-[var(--input-bg)] border-2 border-black font-mono text-[11px] leading-relaxed">
+              <div className="p-4 bg-[var(--surface)] border border-[var(--rim)] rounded-[var(--radius-sm)] font-mono text-[11px] leading-relaxed text-[var(--ink-secondary)]">
                 No semantic policy changes detected between latest scrape and
                 prior baseline.
               </div>
@@ -392,24 +382,26 @@ export default function ScraperDetailPage({
       )}
 
       {activeTab === "raw" && (
-        <div className="comic-panel bg-[var(--card-bg)] border-3 border-black shadow-[6px_6px_0_#000000] p-5 space-y-3">
+        <div className="rounded-[var(--radius-lg)] bg-[var(--depth)] border border-[var(--rim)] p-5 space-y-3">
           <div className="flex items-center justify-between">
-            <h2 className="font-['Bangers'] text-xl tracking-wide text-[var(--fg)]">
-              RAW SCRAPED JSON PAYLOAD
+            <h2 className="text-base font-semibold tracking-tight text-[var(--ink-primary)]">
+              Raw Scraped JSON Payload
             </h2>
-            <button
+            <Button
+              variant="secondary"
+              size="sm"
               onClick={() => {
                 navigator.clipboard.writeText(
                   JSON.stringify(latestSnapshot || {}, null, 2),
                 );
                 flash("✓ Raw JSON copied to clipboard");
               }}
-              className="btn btn--yellow text-xs px-3 py-1 font-['Bangers'] tracking-wider"
+              className="text-xs"
             >
-              <Copy className="w-3 h-3 mr-1 inline" /> COPY RAW JSON
-            </button>
+              <Copy className="w-3 h-3 mr-1 inline" /> Copy Raw JSON
+            </Button>
           </div>
-          <pre className="p-4 bg-[#0B0714] text-[#00E5FF] border-2 border-black shadow-[4px_4px_0_#000000] font-mono text-[10px] overflow-x-auto max-h-96 rounded-none">
+          <pre className="p-4 bg-[var(--void)] text-[var(--watchful)] border border-[var(--rim)] rounded-[var(--radius-sm)] font-mono text-[10px] overflow-x-auto max-h-96">
             {JSON.stringify(
               latestSnapshot || { message: "No snapshot loaded" },
               null,

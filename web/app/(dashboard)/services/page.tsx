@@ -100,30 +100,30 @@ function CollectorCard({
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -4 }}
-      className="comic-panel bg-[var(--card-bg)] border-2 border-black shadow-[4px_4px_0_#000000] p-4 flex flex-col gap-3"
+      className="bg-[var(--card)] border border-[var(--rim)] rounded-[var(--radius-md)] p-4 flex flex-col gap-3 shadow-[var(--shadow)]"
     >
       <div className="flex items-start gap-3">
         <Link
           href={`/scrapers/${c.collectorId}`}
           className="shrink-0 hover:scale-105 transition-transform"
         >
-          <div className="w-9 h-9 bg-[var(--sv-cyan)]/15 border-2 border-black flex items-center justify-center">
-            <Icon className="w-4 h-4 text-[var(--sv-cyan)]" />
+          <div className="w-8 h-8 rounded-[var(--radius-sm)] bg-[var(--watchful-fill)] border border-[rgba(196,181,253,0.3)] flex items-center justify-center">
+            <Icon className="w-4 h-4 text-[var(--watchful)]" />
           </div>
         </Link>
 
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             <Link href={`/scrapers/${c.collectorId}`} className="group">
-              <p className="text-sm font-bold text-[var(--fg)] group-hover:text-[var(--sv-magenta)] font-['Bangers'] tracking-wide truncate transition-colors">
+              <p className="text-sm font-semibold text-[var(--ink-primary)] group-hover:text-[var(--watchful)] tracking-tight truncate transition-colors">
                 {c.name}
               </p>
             </Link>
-            <span className="caption text-[9px] bg-[var(--sv-cyan)]/10 text-[var(--sv-cyan)] px-1.5 py-0.5 border border-[var(--sv-cyan)]/30">
+            <span className="caption text-[9px] bg-[var(--surface)] text-[var(--ink-secondary)] px-1.5 py-0.5 border border-[var(--rim)] rounded">
               {SOURCE_LABEL[c.sourceType] ?? c.sourceType}
             </span>
             {c.healCount > 0 && (
-              <span className="inline-flex items-center gap-0.5 text-[9px] font-mono text-[#FFD400]">
+              <span className="inline-flex items-center gap-0.5 text-[9px] font-mono text-[var(--clear)]">
                 {HealIcon && <HealIcon className="w-2.5 h-2.5" />}
                 {c.healCount} heal{c.healCount !== 1 ? "s" : ""}
               </span>
@@ -132,7 +132,7 @@ function CollectorCard({
 
           <button
             onClick={copyId}
-            className="flex items-center gap-1 mt-0.5 text-[10px] font-mono text-[var(--subtext)] hover:text-[var(--sv-cyan)] transition-colors"
+            className="flex items-center gap-1 mt-0.5 text-[10px] font-mono text-[var(--ink-tertiary)] hover:text-[var(--watchful)] transition-colors cursor-pointer"
             title="Copy collector ID"
           >
             <Copy className="w-2.5 h-2.5" />
@@ -141,9 +141,9 @@ function CollectorCard({
         </div>
       </div>
 
-      <div className="flex items-center gap-1.5 bg-[var(--input-bg)] border border-black px-2 py-1.5">
-        <Globe className="w-3 h-3 text-[var(--subtext)] shrink-0" />
-        <span className="text-[10px] font-mono text-[var(--sv-cyan)] truncate flex-1">
+      <div className="flex items-center gap-1.5 bg-[var(--surface)] border border-[var(--rim)] rounded-[var(--radius-sm)] px-2.5 py-1.5">
+        <Globe className="w-3 h-3 text-[var(--ink-tertiary)] shrink-0" />
+        <span className="text-[10px] font-mono text-[var(--watchful)] truncate flex-1">
           {c.url}
         </span>
         <a
@@ -152,61 +152,61 @@ function CollectorCard({
           rel="noopener noreferrer"
           className="shrink-0"
         >
-          <ExternalLink className="w-3 h-3 text-[var(--subtext)] hover:text-[var(--fg)]" />
+          <ExternalLink className="w-3 h-3 text-[var(--ink-tertiary)] hover:text-[var(--ink-primary)]" />
         </a>
       </div>
 
-      <div className="flex items-center justify-between text-[9px] font-mono text-[var(--subtext)]">
+      <div className="flex items-center justify-between text-[9px] font-mono text-[var(--ink-tertiary)]">
         <span className="flex items-center gap-1">
           <Clock className="w-2.5 h-2.5" />
           Added {new Date(c.createdAt).toLocaleDateString()}
         </span>
         {c.lastHealedAt && (
           <span className="flex items-center gap-1">
-            <CheckCircle2 className="w-2.5 h-2.5 text-emerald-400" />
+            <CheckCircle2 className="w-2.5 h-2.5 text-[var(--clear)]" />
             Last healed {new Date(c.lastHealedAt).toLocaleDateString()}
           </span>
         )}
       </div>
 
-      <div className="flex items-center gap-2 pt-1 border-t border-black/20 flex-wrap">
+      <div className="flex items-center gap-2 pt-1 border-t border-[var(--rim)]/40 flex-wrap">
         <Link href={`/scrapers/${c.collectorId}`} className="flex-1">
           <Button
-            variant="ghost"
+            variant="secondary"
             size="sm"
-            className="w-full font-['Bangers'] text-xs tracking-wider border-2 border-black bg-[var(--input-bg)] hover:bg-[var(--sv-cyan)] hover:text-black shadow-[2px_2px_0_#000000] active:scale-[0.98] transition-all"
+            className="w-full text-xs"
           >
             <Eye className="w-3 h-3 mr-1" />
-            VIEW DATA
+            View Data
           </Button>
         </Link>
         <Button
-          variant="yellow"
+          variant="default"
           size="sm"
           onClick={onRun}
           disabled={isRunning}
-          className="flex-1 font-['Bangers'] text-xs tracking-wider"
+          className="flex-1 text-xs font-semibold"
         >
           <Play className="w-3 h-3 mr-1" />
-          {isRunning ? "SCANNING…" : "SCAN NOW"}
+          {isRunning ? "Scanning…" : "Scan Now"}
         </Button>
         <Button
-          variant="cyan"
+          variant="secondary"
           size="sm"
           onClick={onHeal}
           disabled={isHealing}
-          className="flex-1 font-['Bangers'] text-xs tracking-wider"
+          className="flex-1 text-xs"
           title="Trigger Bright Data self-heal for this collector"
         >
           <Zap className="w-3 h-3 mr-1" />
-          {isHealing ? "HEALING…" : "BD HEAL"}
+          {isHealing ? "Healing…" : "BD Heal"}
         </Button>
         <Button
           variant="magenta"
           size="sm"
           onClick={onDelete}
           disabled={isDeleting}
-          className="font-['Bangers'] text-xs tracking-wider px-2"
+          className="text-xs px-2"
           title="Remove from registry"
         >
           <Trash2 className="w-3 h-3" />
@@ -296,56 +296,56 @@ export default function ServicesPage() {
 
   return (
     <div className="flex flex-col gap-6 max-w-5xl">
-      <div className="comic-panel bg-[var(--card-bg)] border-3 border-black shadow-[6px_6px_0_#000000] p-5 flex items-center justify-between flex-wrap gap-4">
+      <div className="rounded-[var(--radius-lg)] bg-[var(--depth)] border border-[var(--rim)] p-5 md:p-6 flex items-center justify-between flex-wrap gap-4 transition-colors">
         <div>
-          <span className="caption caption--cyan text-[10px] mb-1">
+          <span className="text-[10px] font-mono uppercase tracking-[0.08em] text-[var(--watchful)] mb-1 block">
             BRIGHT DATA SCRAPER REGISTRY
           </span>
-          <h1 className="font-['Bangers'] text-3xl tracking-wide text-[var(--fg)]">
-            COLLECTOR MANAGEMENT
+          <h1 className="text-xl md:text-2xl font-semibold tracking-tight text-[var(--ink-primary)]">
+            Collector Management
           </h1>
-          <p className="text-[11px] text-[var(--subtext)] font-sans mt-1">
+          <p className="text-xs text-[var(--ink-secondary)] mt-0.5 max-w-xl">
             One collector per URL — deduplicated automatically. Scan, heal, or
             remove collectors from the registry.
           </p>
         </div>
-        <div className="flex items-center gap-3 flex-wrap">
-          <div className="flex flex-col items-center comic-panel bg-[var(--input-bg)] border-2 border-black px-3 py-1.5 shadow-[2px_2px_0_#000000]">
-            <span className="font-['Bangers'] text-2xl text-[var(--sv-cyan)]">
+        <div className="flex items-center gap-2.5 flex-wrap">
+          <div className="flex flex-col items-center bg-[var(--surface)] border border-[var(--rim)] rounded-[var(--radius-md)] px-3.5 py-1.5">
+            <span className="text-xl font-semibold text-[var(--ink-primary)]">
               {total}
             </span>
-            <span className="text-[9px] font-mono text-[var(--subtext)] uppercase">
+            <span className="text-[9px] font-mono text-[var(--ink-tertiary)] uppercase">
               Collectors
             </span>
           </div>
-          <div className="flex flex-col items-center comic-panel bg-[var(--input-bg)] border-2 border-black px-3 py-1.5 shadow-[2px_2px_0_#000000]">
-            <span className="font-['Bangers'] text-2xl text-[#FFD400]">
+          <div className="flex flex-col items-center bg-[var(--surface)] border border-[var(--rim)] rounded-[var(--radius-md)] px-3.5 py-1.5">
+            <span className="text-xl font-semibold text-[var(--clear)]">
               {totalHeals}
             </span>
-            <span className="text-[9px] font-mono text-[var(--subtext)] uppercase">
+            <span className="text-[9px] font-mono text-[var(--ink-tertiary)] uppercase">
               Total Heals
             </span>
           </div>
-          <div className="flex flex-col items-center comic-panel bg-[var(--input-bg)] border-2 border-black px-3 py-1.5 shadow-[2px_2px_0_#000000]">
-            <span className="font-['Bangers'] text-2xl text-emerald-400">
+          <div className="flex flex-col items-center bg-[var(--surface)] border border-[var(--rim)] rounded-[var(--radius-md)] px-3.5 py-1.5">
+            <span className="text-xl font-semibold text-[var(--watchful)]">
               {healed}
             </span>
-            <span className="text-[9px] font-mono text-[var(--subtext)] uppercase">
+            <span className="text-[9px] font-mono text-[var(--ink-tertiary)] uppercase">
               Ever Healed
             </span>
           </div>
         </div>
       </div>
 
-      <div className="flex items-start gap-3 bg-[var(--card-bg)] border-2 border-[var(--sv-cyan)] shadow-[3px_3px_0_var(--sv-cyan)] p-3">
-        <CheckCircle2 className="w-4 h-4 text-[var(--sv-cyan)] shrink-0 mt-0.5" />
-        <p className="text-[10px] font-mono text-[var(--subtext)] leading-relaxed">
-          <span className="text-[var(--sv-cyan)] font-bold">
+      <div className="flex items-start gap-3 bg-[var(--surface)]/40 border border-[var(--rim)] rounded-[var(--radius-md)] p-3.5">
+        <CheckCircle2 className="w-4 h-4 text-[var(--clear)] shrink-0 mt-0.5" />
+        <p className="text-[10px] font-mono text-[var(--ink-secondary)] leading-relaxed">
+          <span className="text-[var(--clear)] font-bold">
             URL DEDUPLICATION ACTIVE:{" "}
           </span>
           When a URL is submitted that already has a collector, the existing
           Bright Data collector is reused — no duplicate scrapers are created.
-          The collector ID (<code className="text-[var(--fg)]">c_xxxx</code>) is
+          The collector ID (<code className="text-[var(--ink-primary)]">c_xxxx</code>) is
           the Bright Data Scraper Studio reference.
         </p>
       </div>
@@ -353,18 +353,18 @@ export default function ServicesPage() {
       {isLoading && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {[...Array(4)].map((_, i) => (
-            <div key={i} className="skeleton h-48 border-2 border-black" />
+            <div key={i} className="skeleton h-48 border border-[var(--rim)] rounded-[var(--radius-md)]" />
           ))}
         </div>
       )}
 
       {!isLoading && collectors.length === 0 && (
-        <div className="comic-panel bg-[var(--input-bg)] border-2 border-dashed border-[#FFD400]/50 p-10 text-center">
-          <Plus className="w-8 h-8 text-[var(--subtext)] mx-auto mb-3" />
-          <p className="font-['Bangers'] text-xl text-[var(--fg)] mb-1">
-            NO COLLECTORS YET
+        <div className="rounded-[var(--radius-md)] bg-[var(--surface)]/30 border border-dashed border-[var(--rim)] p-10 text-center">
+          <Plus className="w-8 h-8 text-[var(--ink-tertiary)] mx-auto mb-2" />
+          <p className="text-sm font-semibold tracking-tight text-[var(--ink-primary)] mb-1">
+            No Collectors Yet
           </p>
-          <p className="text-[11px] font-mono text-[var(--subtext)]">
+          <p className="text-xs text-[var(--ink-secondary)]">
             Add a URL from the dashboard to create your first Bright Data
             collector.
           </p>

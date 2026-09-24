@@ -80,16 +80,16 @@ function StatCard({
   icon: React.ReactNode;
 }) {
   return (
-    <div className="comic-panel bg-[var(--card-bg)] border-2 border-black shadow-[4px_4px_0_#000000] p-4 flex flex-col gap-1">
-      <div className="flex items-center gap-2 text-[var(--subtext)] text-[10px] uppercase tracking-wider font-bold">
+    <div className="rounded-[var(--radius-md)] bg-[var(--depth)] border border-[var(--rim)] p-4 flex flex-col gap-1 transition-colors">
+      <div className="flex items-center gap-2 text-[var(--ink-secondary)] text-[10px] uppercase tracking-wider font-medium">
         {icon}
         {label}
       </div>
-      <div className="font-['Bangers'] text-3xl tracking-wider text-[var(--fg)]">
+      <div className="text-2xl font-semibold tracking-tight text-[var(--ink-primary)]">
         {value}
       </div>
       {sub && (
-        <div className="text-[10px] text-[var(--subtext)] font-mono">{sub}</div>
+        <div className="text-[10px] text-[var(--ink-tertiary)] font-mono">{sub}</div>
       )}
     </div>
   );
@@ -133,84 +133,83 @@ export default function HealsPage() {
 
   return (
     <div className="flex flex-col gap-6 max-w-4xl">
-      <div className="comic-panel bg-[var(--card-bg)] border-3 border-black shadow-[6px_6px_0_#000000] p-5 flex items-center justify-between flex-wrap gap-4">
+      <div className="rounded-[var(--radius-lg)] bg-[var(--depth)] border border-[var(--rim)] p-5 md:p-6 flex items-center justify-between flex-wrap gap-4 transition-colors">
         <div>
-          <span className="caption caption--cyan text-[10px] mb-1">
+          <span className="text-[10px] font-mono uppercase tracking-[0.08em] text-[var(--watchful)] mb-1 block">
             BRIGHT DATA INTEGRATION
           </span>
-          <h1 className="font-['Bangers'] text-3xl tracking-wide text-[var(--fg)]">
-            SELF-HEALING TELEMETRY
+          <h1 className="text-xl md:text-2xl font-semibold tracking-tight text-[var(--ink-primary)]">
+            Self-Healing Telemetry
           </h1>
-          <p className="text-[11px] text-[var(--subtext)] font-sans mt-1">
+          <p className="text-xs text-[var(--ink-secondary)] mt-0.5 max-w-xl">
             Real-time log of network blocks, CAPTCHA bypasses, and extraction
             failures auto-repaired by Bright Data + the Spider-Sense agent.
           </p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           <Button
-            variant="ghost"
+            variant="secondary"
             size="sm"
-            className="text-[10px] font-bold border-2 border-black shadow-[2px_2px_0_#000000]"
+            className="text-xs"
             onClick={() => qc.invalidateQueries({ queryKey: ["heals"] })}
           >
-            <RefreshCw className="w-3 h-3 mr-1" /> REFRESH
+            <RefreshCw className="w-3 h-3 mr-1" /> Refresh
           </Button>
           <Button
-            variant="ghost"
+            variant="default"
             size="sm"
-            className="text-[10px] font-bold border-2 border-[#FFD400] shadow-[2px_2px_0_#000000] text-[#FFD400] hover:bg-[#FFD400] hover:text-black transition-colors"
+            className="text-xs font-semibold"
             onClick={() => simulate.mutate(4)}
             disabled={simulate.isPending}
           >
             <Zap className="w-3 h-3 mr-1" />
-            {simulate.isPending ? "INJECTING..." : "SIMULATE HEALS"}
+            {simulate.isPending ? "Injecting..." : "Simulate Heals"}
           </Button>
         </div>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <StatCard
           value={totalHeals}
-          label="Total Heals"
+          label="TOTAL HEAL EVENTS"
           sub="all time"
-          icon={<Activity className="w-3.5 h-3.5" />}
+          icon={<ShieldCheck className="w-3.5 h-3.5 text-[var(--watchful)]" />}
         />
         <StatCard
-          value={`${succeeded}/${totalHeals}`}
-          label="Succeeded"
-          sub={
-            totalHeals > 0
-              ? `${Math.round((succeeded / totalHeals) * 100)}% success rate`
-              : "—"
-          }
-          icon={<ShieldCheck className="w-3.5 h-3.5" />}
+          value={`${totalHeals ? Math.round((succeeded / totalHeals) * 100) : 100}%`}
+          label="HEAL SUCCESS RATE"
+          sub={`${succeeded}/${totalHeals} succeeded`}
+          icon={<Activity className="w-3.5 h-3.5 text-[var(--clear)]" />}
         />
         <StatCard
           value={networkHeals}
-          label="BD Network Heals"
-          sub="proxy / CAPTCHA / block"
-          icon={<Wifi className="w-3.5 h-3.5" />}
+          label="NETWORK UNBLOCKS"
+          sub="via Bright Data proxy"
+          icon={<Wifi className="w-3.5 h-3.5 text-[var(--watchful)]" />}
         />
         <StatCard
-          value={`${avgDuration}s`}
-          label="Avg Heal Time"
-          sub="time to recovery"
-          icon={<Clock className="w-3.5 h-3.5" />}
+          value={avgDuration ? `${avgDuration}s` : "—"}
+          label="AVG REPAIR TIME"
+          sub="detect to fix"
+          icon={<Clock className="w-3.5 h-3.5 text-[var(--ink-secondary)]" />}
         />
       </div>
 
-      <div className="comic-panel bg-[var(--card-bg)] border-3 border-black shadow-[6px_6px_0_#000000] p-5 flex flex-col gap-4">
-        <div className="flex items-center justify-between border-b-2 border-black pb-3">
+      <div className="rounded-[var(--radius-lg)] bg-[var(--depth)] border border-[var(--rim)] p-5 flex flex-col gap-4 transition-colors">
+        <div className="flex items-center justify-between border-b border-[var(--rim)] pb-3">
           <div>
-            <h2 className="font-['Bangers'] text-xl tracking-wide text-[var(--fg)]">
-              HEAL EVENT LOG
+            <h2 className="text-base font-semibold tracking-tight text-[var(--ink-primary)]">
+              Heal Event Log
             </h2>
-            <p className="text-[10px] text-[var(--subtext)] font-mono">
+            <p className="text-[10px] text-[var(--ink-tertiary)] font-mono mt-0.5">
               Network heals = Bright Data intervened · Extraction heals = LLM /
               selector repair · Diff heals = comparison engine fixed
             </p>
           </div>
-          <span className="caption caption--red text-[9px]">LIVE</span>
+          <span className="text-[10px] font-mono text-[var(--clear)] flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-[var(--clear)] animate-pulse" />
+            LIVE
+          </span>
         </div>
 
         {isLoading && (
@@ -218,20 +217,20 @@ export default function HealsPage() {
             {[...Array(3)].map((_, i) => (
               <div
                 key={i}
-                className="skeleton h-24 border-2 border-black rounded"
+                className="skeleton h-20 border border-[var(--rim)] rounded-[var(--radius-md)]"
               />
             ))}
           </div>
         )}
 
         {!isLoading && heals.length === 0 && (
-          <div className="comic-panel bg-[var(--input-bg)] border-2 border-dashed border-emerald-500/40 p-8 text-center">
-            <CheckCircle2 className="w-10 h-10 text-emerald-400 mx-auto mb-3" />
-            <p className="font-['Bangers'] text-xl tracking-wider text-[var(--fg)] mb-1">
-              ALL SCRAPERS HEALTHY
+          <div className="rounded-[var(--radius-md)] bg-[var(--surface)]/30 border border-dashed border-[var(--clear)]/40 p-8 text-center">
+            <CheckCircle2 className="w-8 h-8 text-[var(--clear)] mx-auto mb-2" />
+            <p className="text-sm font-semibold tracking-tight text-[var(--ink-primary)] mb-1">
+              All Scrapers Healthy
             </p>
-            <p className="text-[11px] text-[var(--subtext)] font-mono">
-              No heal events recorded. Click "SIMULATE HEALS" to inject test
+            <p className="text-xs text-[var(--ink-secondary)]">
+              No heal events recorded. Click "Simulate Heals" to inject test
               events.
             </p>
           </div>
@@ -247,45 +246,45 @@ export default function HealsPage() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.04, duration: 0.2 }}
-                className="bg-[var(--input-bg)] border-2 border-black p-4 shadow-[3px_3px_0_#000000] flex flex-col gap-2.5"
+                className="bg-[var(--surface)]/50 border border-[var(--rim)] p-4 rounded-[var(--radius-md)] flex flex-col gap-2.5 hover:border-[rgba(196,181,253,0.3)] transition-all"
               >
                 <div className="flex items-start justify-between gap-3 flex-wrap">
                   <div className="flex flex-col gap-0.5 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <HealTypePill type={heal.healType} />
                       <span
-                        className={`badge text-[9px] font-['Bangers'] tracking-wider ${meta.badge}`}
+                        className={`badge text-[9px] font-mono tracking-wider ${meta.badge}`}
                       >
                         {heal.healType.toUpperCase()}
                       </span>
                       {heal.succeeded ? (
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                        <CheckCircle2 className="w-3.5 h-3.5 text-[var(--clear)]" />
                       ) : (
-                        <XCircle className="w-3.5 h-3.5 text-[#FF2E63]" />
+                        <XCircle className="w-3.5 h-3.5 text-[var(--alert)]" />
                       )}
                       {heal.attempts > 1 && (
-                        <span className="text-[9px] font-mono text-[var(--subtext)]">
+                        <span className="text-[9px] font-mono text-[var(--ink-tertiary)]">
                           {heal.attempts} attempts
                         </span>
                       )}
                       {heal.durationMs && (
-                        <span className="text-[9px] font-mono text-[var(--subtext)] flex items-center gap-0.5">
+                        <span className="text-[9px] font-mono text-[var(--ink-tertiary)] flex items-center gap-0.5">
                           <Clock className="w-3 h-3" />
                           {(heal.durationMs / 1000).toFixed(1)}s
                         </span>
                       )}
                     </div>
-                    <p className="text-xs font-bold text-[var(--fg)] leading-snug mt-1">
+                    <p className="text-xs font-medium text-[var(--ink-primary)] leading-snug mt-1">
                       {heal.description}
                     </p>
                   </div>
 
                   <div className="text-right shrink-0">
-                    <p className="text-[10px] font-bold text-[var(--subtext)]">
+                    <p className="text-[10px] font-medium text-[var(--ink-secondary)]">
                       {heal.collectorName ?? heal.collectorId}
                     </p>
                     {heal.collectorUrl && (
-                      <p className="text-[9px] text-[var(--subtext)] font-mono truncate max-w-[180px]">
+                      <p className="text-[9px] text-[var(--ink-tertiary)] font-mono truncate max-w-[180px]">
                         {
                           heal.collectorUrl
                             .replace(/^https?:\/\//, "")
@@ -293,16 +292,16 @@ export default function HealsPage() {
                         }
                       </p>
                     )}
-                    <p className="text-[9px] text-[var(--subtext)] font-mono mt-0.5">
+                    <p className="text-[9px] text-[var(--ink-tertiary)] font-mono mt-0.5">
                       {new Date(heal.healedAt).toLocaleString()}
                     </p>
                   </div>
                 </div>
 
                 {heal.resolution && (
-                  <div className="border-t border-black/20 pt-2">
-                    <p className="text-[10px] font-mono text-[var(--subtext)] leading-relaxed">
-                      <span className="text-emerald-400 font-bold">
+                  <div className="border-t border-[var(--rim)]/40 pt-2">
+                    <p className="text-[10px] font-mono text-[var(--ink-secondary)] leading-relaxed">
+                      <span className="text-[var(--clear)] font-bold">
                         RESOLUTION →{" "}
                       </span>
                       {heal.resolution}
@@ -315,13 +314,13 @@ export default function HealsPage() {
         </AnimatePresence>
       </div>
 
-      <div className="comic-panel bg-[var(--card-bg)] border-2 border-[var(--sv-cyan)] shadow-[4px_4px_0_var(--sv-cyan)] p-4 flex items-start gap-3">
-        <ShieldCheck className="w-5 h-5 text-[var(--sv-cyan)] shrink-0 mt-0.5" />
+      <div className="rounded-[var(--radius-md)] bg-[var(--surface)]/50 border border-[var(--rim)] p-4 flex items-start gap-3 transition-colors">
+        <ShieldCheck className="w-5 h-5 text-[var(--watchful)] shrink-0 mt-0.5" />
         <div>
-          <p className="text-xs font-bold text-[var(--fg)]">
+          <p className="text-xs font-semibold text-[var(--ink-primary)]">
             Powered by Bright Data Autonomous Infrastructure
           </p>
-          <p className="text-[10px] text-[var(--subtext)] font-mono mt-0.5">
+          <p className="text-[10px] text-[var(--ink-secondary)] font-mono mt-0.5 leading-relaxed">
             Network-level heals (proxy rotation, CAPTCHA solving, bot-bypass)
             are handled automatically by Bright Data's scraping infrastructure.
             Application-level heals (LLM retries, selector repair, diff

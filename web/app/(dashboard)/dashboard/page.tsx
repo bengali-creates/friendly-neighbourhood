@@ -9,18 +9,22 @@ import { WebShooterArrival } from "@/components/WebShooterArrival";
 export default function DashboardPage() {
   return (
     <div className="flex flex-col gap-6">
-      <WebShooterArrival delay={0} direction="left">
-        <div className="comic-panel bg-[var(--card-bg)] border-3 border-black shadow-[6px_6px_0_#000000] p-5 flex items-center justify-between flex-wrap gap-4">
+      {/* <WebShooterArrival delay={0} direction="left">
+        <div className="rounded-[var(--radius-lg)] bg-[var(--depth)] border border-[var(--rim)] p-5 md:p-6 flex items-center justify-between flex-wrap gap-4 transition-colors">
           <div>
-            <span className="caption caption--yellow text-[10px] mb-1">RADAR CONTROL ROOM</span>
-            <h1 className="font-['Bangers'] text-3xl md:text-4xl tracking-wider text-[var(--fg)]">AUTONOMOUS MONITORING FEED</h1>
-            <p className="text-xs text-[var(--subtext)] font-sans">Live tracking for active service ToS diffs & product recalls</p>
+            <div className="flex items-center gap-2 mb-1.5">
+              <span className="inline-block w-1.5 h-1.5 rounded-full bg-[var(--watchful)] shadow-[0_0_8px_rgba(196,181,253,0.8)]" />
+              <span className="text-[10px] font-mono uppercase tracking-[0.08em] text-[var(--ink-secondary)]">RADAR CONTROL ROOM</span>
+            </div>
+            <h1 className="text-xl md:text-2xl font-semibold tracking-tight text-[var(--ink-primary)]">Autonomous Monitoring Feed</h1>
+            <p className="text-xs text-[var(--ink-secondary)] mt-0.5">Live tracking for active service ToS diffs, consumer telemetry & product recalls</p>
           </div>
-          <Badge variant="warning" className="bg-[#FFD400] text-black border-2 border-black font-['Bangers'] tracking-widest text-xs px-3 py-1 shadow-[2px_2px_0_#000000]">
-            ⚡ AGENT ACTIVE
+          <Badge variant="info" className="text-xs px-3 py-1 gap-1.5 font-medium">
+            <span className="w-1.5 h-1.5 rounded-full bg-[var(--watchful)] animate-pulse" />
+            Agent Active
           </Badge>
         </div>
-      </WebShooterArrival>
+      </WebShooterArrival> */}
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         

@@ -27,65 +27,61 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   return (
     <div
-      className={`min-h-screen flex flex-col font-sans selection:bg-[var(--sv-magenta)] selection:text-white relative transition-colors duration-200 ${
-        isDark ? "bg-[#0B0714] text-[#EDEAE0]" : "bg-[#F4EBD9] text-[#0B0714]"
-      }`}
+      className="min-h-screen flex flex-col font-sans selection:bg-[var(--watchful)] selection:text-[var(--void)] relative bg-[var(--void)] text-[var(--ink-primary)] transition-colors duration-200"
     >
-      
       <header
-        className={`border-b-3 border-black px-6 py-3 flex items-center justify-between sticky top-0 z-40 shadow-[0_4px_0_#000000] transition-colors duration-200 ${
-          isDark ? "bg-[#141026]" : "bg-white"
-        }`}
+        className="border-b border-[var(--rim)] px-6 py-3 flex items-center justify-between sticky top-0 z-40 bg-[var(--depth)]/90 backdrop-blur-md transition-colors duration-200"
       >
         <div className="flex items-center gap-3">
-          <Link href="/dashboard" className="flex items-center gap-2.5">
-            <div className="w-9 h-9 bg-[var(--sv-magenta)] border-2 border-black flex items-center justify-center shadow-[3px_3px_0_#000000] -rotate-3">
-              <Radar className="w-5 h-5 text-white animate-pulse" />
+          <Link href="/dashboard" className="flex items-center gap-2.5 group">
+            <div className="w-8 h-8 rounded-[var(--radius-sm)] bg-[var(--watchful-fill)] border border-[rgba(196,181,253,0.3)] flex items-center justify-center text-[var(--watchful)] transition-transform duration-200 group-hover:scale-105">
+              <Radar className="w-4 h-4 text-[var(--watchful)]" />
             </div>
-            <span className={`font-['Bangers'] text-3xl tracking-wider ${isDark ? "text-white" : "text-[#0B0714]"}`}>
-              SPIDER-SENSE
-            </span>
+            <div className="flex flex-col">
+              <span className="font-semibold text-sm tracking-tight text-[var(--ink-primary)] leading-none">
+                Spider-Sense
+              </span>
+              <span className="text-[10px] text-[var(--ink-tertiary)] leading-tight tracking-wider uppercase">
+                Autonomous Radar
+              </span>
+            </div>
           </Link>
-          <Badge variant="info" className="hidden sm:inline-flex text-[10px]">CONTROL ROOM</Badge>
+          <Badge variant="outline" className="hidden sm:inline-flex text-[10px] ml-2">CONTROL ROOM</Badge>
         </div>
 
-        
-        <div className="flex items-center gap-3">
-          
+        <div className="flex items-center gap-2.5">
           <button
             onClick={toggleTheme}
-            className={`flex items-center gap-1.5 px-3 py-1.5 border-2 border-black shadow-[2px_2px_0_#000000] font-['Bangers'] tracking-wider text-xs cursor-pointer transition-all ${
-              isDark ? "bg-[#FFD400] text-black" : "bg-[#0B0714] text-white"
-            }`}
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-[var(--radius-sm)] border border-[var(--rim)] bg-[var(--surface)] text-[var(--ink-secondary)] hover:text-[var(--ink-primary)] hover:border-[rgba(196,181,253,0.3)] text-xs font-medium cursor-pointer transition-all"
+            aria-label="Toggle theme"
           >
-            {isDark ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}
-            <span>{isDark ? "LIGHT MODE" : "DARK MODE"}</span>
+            {isDark ? <Sun className="w-3.5 h-3.5 text-[#FB923C]" /> : <Moon className="w-3.5 h-3.5 text-[var(--watchful)]" />}
+            <span className="hidden sm:inline text-[11px]">{isDark ? "Light" : "Dark"}</span>
           </button>
 
           <div
-            className={`flex items-center gap-2 px-3 py-1.5 border-2 border-black shadow-[2px_2px_0_#000000] text-xs font-mono ${
-              isDark ? "bg-[#0B0714]" : "bg-white"
-            }`}
+            className="flex items-center gap-2 px-2.5 py-1.5 rounded-[var(--radius-sm)] border border-[var(--rim)] bg-[var(--surface)] text-xs font-mono text-[var(--ink-secondary)]"
           >
-            <span className={`w-2.5 h-2.5 rounded-full ${agentStatus === "running" ? "bg-[var(--sv-yellow)] animate-ping" : "bg-emerald-400"}`} />
-            <span className="uppercase text-[10px] tracking-wider font-bold">{agentStatus}</span>
+            <span className={`w-2 h-2 rounded-full ${agentStatus === "running" ? "bg-[var(--clear)] animate-pulse" : "bg-[var(--ink-tertiary)]"}`} />
+            <span className="uppercase text-[10px] tracking-wider">{agentStatus}</span>
           </div>
 
           <Link href="/">
-            <Button variant="ghost" size="sm" className="gap-1.5 text-xs font-bold border-2 border-black shadow-[2px_2px_0_#000000]">
+            <Button variant="ghost" size="sm" className="gap-1.5 text-xs text-[var(--ink-secondary)] hover:text-[var(--ink-primary)]">
               <LogOut className="w-3.5 h-3.5" /> Sign Out
             </Button>
           </Link>
         </div>
       </header>
 
-      
-      <div className="flex-1  w-full mx-auto p-3 md:p-5 flex flex-col md:flex-row gap-5 ">
-        
+      <div className="flex-1 w-full mx-auto p-4 md:p-6 flex flex-col md:flex-row gap-6">
         <aside className="w-full md:w-60 shrink-0 flex flex-col gap-2">
-          <div className="flex items-center justify-between px-1">
-            <span className="font-['Bangers'] text-xl tracking-wider text-[var(--sv-yellow)]">RADAR VIEWS</span>
-            <span className="caption caption--cyan text-[9px]">LIVE</span>
+          <div className="flex items-center justify-between px-2 pt-1 pb-1">
+            <span className="text-[11px] font-medium tracking-[0.06em] uppercase text-[var(--ink-tertiary)]">RADAR VIEWS</span>
+            <span className="inline-flex items-center gap-1.5 text-[10px] font-mono text-[var(--clear)]">
+              <span className="w-1.5 h-1.5 rounded-full bg-[var(--clear)] animate-pulse" />
+              LIVE
+            </span>
           </div>
 
           <PillNav
@@ -96,13 +92,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           />
         </aside>
 
-        
         <main className="flex-1 min-w-0">
           {children}
         </main>
       </div>
 
-      
       <AlertDrawer />
     </div>
   );

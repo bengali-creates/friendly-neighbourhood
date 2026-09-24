@@ -5,8 +5,8 @@ export default function LogsPage() {
   return (
     <div className="flex flex-col gap-6 max-w-4xl">
       <div>
-        <h1 className="font-['Bangers'] text-3xl tracking-wide text-[var(--fg)]">AGENTIC AI EXECUTION LOGS</h1>
-        <p className="text-xs text-[var(--subtext)] font-sans">Live telemetry, LangGraph execution trace, and prompt output</p>
+        <h1 className="text-xl md:text-2xl font-semibold tracking-tight text-[var(--ink-primary)]">Agentic AI Execution Logs</h1>
+        <p className="text-xs text-[var(--ink-secondary)] mt-0.5">Live telemetry, LangGraph execution trace, and prompt output</p>
       </div>
 
       <AgentLogPanel />

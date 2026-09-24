@@ -2,60 +2,128 @@
 @import "tailwindcss";
 
 :root {
-  /* -- Cyber-Noir Obsidian & Bone Design System -- */
-  --ink:          #08060D;
-  --ink-mid:      #0E0C16;
-  --ink-soft:     #141120;
-  --ink-card:     rgba(14, 12, 22, 0.72);
+  /* === BACKGROUND TIER — "The Field" === */
+  --void:          #0F0D12;   /* page background — deepest layer */
+  --depth:         #16131C;   /* cards, panels, sidebars */
+  --surface:       #1E1A27;   /* elevated surfaces, hover states, inputs */
+  --rim:           #2A2436;   /* all borders, dividers, separators */
 
-  --bone:         #DFE7E0;
-  --bone-dim:     rgba(223, 231, 224, 0.72);
-  --muted:        rgba(223, 231, 224, 0.42);
+  /* === TEXT TIER — "The Ink" === */
+  --ink-primary:   #E8E2D5;   /* headlines, primary copy, active labels */
+  --ink-secondary: #A89E8E;   /* subtitles, metadata, timestamps, subtext */
+  --ink-tertiary:  #6B6259;   /* captions, placeholder text, disabled */
 
-  --vermilion:    #E0231C;   /* alert / pulse / scan */
-  --ember:        #FF6B2B;   /* warm / processing */
-  --signal:       #00E5FF;   /* healed / success / radar cyan */
-  --emerald:      #10B981;
+  /* === SIGNAL TIER — "The Pulse" === */
+  --watchful:      #C4B5FD;   /* primary accent: muted lavender for active, links, focus */
+  --alert:         #F87171;   /* danger signal: warm coral */
+  --clear:         #6EE7B7;   /* success signal: soft mint */
 
-  --line:         rgba(223, 231, 224, 0.16);
-  --line-soft:    rgba(223, 231, 224, 0.08);
-  --glow-vermilion: rgba(224, 35, 28, 0.25);
+  /* === DERIVED FILLS (translucent signals) === */
+  --watchful-fill: rgba(196, 181, 253, 0.12);
+  --alert-fill:    rgba(248, 113, 113, 0.12);
+  --clear-fill:    rgba(110, 231, 183, 0.12);
 
-  --nav-h:        64px;
-  --pad:          clamp(20px, 5vw, 80px);
-  --ease-out:     cubic-bezier(0.22, 1, 0.36, 1);
-  --ease-io:      cubic-bezier(0.45, 0, 0.55, 1);
+  /* === RADIUS & SPACING === */
+  --radius-sm:     6px;
+  --radius-md:     10px;
+  --radius-lg:     16px;
+  --radius-xl:     24px;
+  --nav-h:         64px;
+  --pad:           clamp(20px, 5vw, 80px);
 
-  /* Legacy compatibility */
-  --bg:           #08060D;
-  --fg:           #DFE7E0;
-  --font-display: 'Onest', sans-serif;
-  --font-body:    'Onest', -apple-system, sans-serif;
-  --font-mono:    'Geist Mono', monospace;
+  /* === MOTION === */
+  --ease-out:      cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-spring:   cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-io:       cubic-bezier(0.45, 0, 0.55, 1);
+  --dur-fast:      150ms;
+  --dur-medium:    300ms;
+
+  /* === FONT STACKS === */
+  --font-display:  'Onest', -apple-system, sans-serif;
+  --font-ui:       'Inter', -apple-system, sans-serif;
+  --font-body:     'Inter', -apple-system, sans-serif;
+  --font-mono:     'Geist Mono', 'SF Mono', monospace;
+
+  /* === COMPATIBILITY ALIASES === */
+  --bg:            var(--void);
+  --fg:            var(--ink-primary);
+  --card-bg:       var(--depth);
+  --card-border:   var(--rim);
+  --card-text:     var(--ink-primary);
+  --input-bg:      var(--surface);
+  --input-text:    var(--ink-primary);
+  --subtext:       var(--ink-secondary);
+  --shadow-color:  transparent;
+
+  /* Former comic tokens mapped to harmonious new palette */
+  --sv-magenta:    var(--watchful);
+  --sv-cyan:       var(--watchful);
+  --sv-yellow:     var(--ink-secondary);
+  --sv-paper:      var(--depth);
+
+  /* Cyber-Noir legacy tokens mapped */
+  --ink:           var(--void);
+  --ink-mid:       var(--depth);
+  --ink-soft:      var(--surface);
+  --ink-card:      var(--depth);
+  --bone:          var(--ink-primary);
+  --bone-dim:      var(--ink-secondary);
+  --bone-muted:    var(--ink-tertiary);
+  --muted:         var(--ink-secondary);
+  --vermilion:     var(--alert);
+  --ember:         #F97316;
+  --signal:        var(--watchful);
+  --emerald:       var(--clear);
+  --line:          var(--rim);
+  --line-soft:     rgba(232, 226, 213, 0.07);
+  --line-strong:   rgba(232, 226, 213, 0.2);
+  --glow-vermilion: rgba(248, 113, 113, 0.2);
 }
 
 html.light, [data-theme="light"] {
-  --bg: #F4EBD9;
-  --fg: #0B0714;
-  --card-bg: #FFFFFF;
-  --card-border: #0B0714;
-  --card-text: #0B0714;
-  --input-bg: #FFFFFF;
-  --input-text: #0B0714;
-  --subtext: rgba(11, 7, 20, 0.7);
-  --shadow-color: #0B0714;
+  --void:          #F7F5F0;
+  --depth:         #FFFFFF;
+  --surface:       #EFECE6;
+  --rim:           #DDD6CC;
+
+  --ink-primary:   #1C1917;
+  --ink-secondary: #57534E;
+  --ink-tertiary:  #857F76;
+
+  --watchful:      #7C3AED;
+  --alert:         #DC2626;
+  --clear:         #059669;
+
+  --watchful-fill: rgba(124, 58, 237, 0.1);
+  --alert-fill:    rgba(220, 38, 38, 0.1);
+  --clear-fill:    rgba(5, 150, 105, 0.1);
+
+  --bg:            var(--void);
+  --fg:            var(--ink-primary);
+  --card-bg:       var(--depth);
+  --card-border:   var(--rim);
+  --card-text:     var(--ink-primary);
+  --input-bg:      #FFFFFF;
+  --input-text:    var(--ink-primary);
+  --subtext:       var(--ink-secondary);
+  --shadow-color:  rgba(0, 0, 0, 0.05);
+
+  --sv-magenta:    var(--watchful);
+  --sv-cyan:       var(--watchful);
+  --sv-yellow:     var(--ink-secondary);
+  --sv-paper:      var(--depth);
 }
 
 html.dark, [data-theme="dark"] {
-  --bg: #08060D;
-  --fg: #DFE7E0;
-  --card-bg: #0E0C16;
-  --card-border: rgba(223, 231, 224, 0.12);
-  --card-text: #DFE7E0;
-  --input-bg: #08060D;
-  --input-text: #DFE7E0;
-  --subtext: rgba(223, 231, 224, 0.7);
-  --shadow-color: #000000;
+  --bg:            var(--void);
+  --fg:            var(--ink-primary);
+  --card-bg:       var(--depth);
+  --card-border:   var(--rim);
+  --card-text:     var(--ink-primary);
+  --input-bg:      var(--surface);
+  --input-text:    var(--ink-primary);
+  --subtext:       var(--ink-secondary);
+  --shadow-color:  transparent;
 }
 
 *, *::before, *::after {
@@ -201,33 +269,41 @@ body {
   text-transform: uppercase;
 }
 
-/* Legacy comic classes support for dashboard compatibility */
+/* Panel and Card classes */
 .comic-panel {
-  border: 2px solid var(--line);
-  box-shadow: 4px 4px 0 #000000;
-  background: #0E0C16;
+  border: 1px solid var(--rim);
+  box-shadow: none;
+  background: var(--depth);
   padding: 1.25rem;
   position: relative;
-  border-radius: 4px;
+  border-radius: var(--radius-md);
+  transition: border-color var(--dur-fast) ease, background var(--dur-fast) ease;
+}
+
+.comic-panel:hover {
+  border-color: rgba(196, 181, 253, 0.2);
 }
 
 .badge {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   font-size: 0.68rem;
-  letter-spacing: 0.08em;
+  font-weight: 500;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
-  padding: 3px 8px;
-  border: 1px solid var(--line);
-  border-radius: 2px;
+  padding: 2px 8px;
+  border: 1px solid var(--rim);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--ink-secondary);
 }
 
-.badge--critical { background: rgba(224, 35, 28, 0.2); color: #FF4D4D; border-color: rgba(224, 35, 28, 0.5); }
-.badge--warning  { background: rgba(255, 107, 43, 0.2); color: #FFA066; border-color: rgba(255, 107, 43, 0.5); }
-.badge--info     { background: rgba(0, 229, 255, 0.15); color: #00E5FF; border-color: rgba(0, 229, 255, 0.4); }
-.badge--healed   { background: rgba(16, 185, 129, 0.2); color: #34D399; border-color: rgba(16, 185, 129, 0.5); }
+.badge--critical { background: var(--alert-fill); color: var(--alert); border-color: rgba(248, 113, 113, 0.25); }
+.badge--warning  { background: rgba(249, 115, 22, 0.12); color: #FB923C; border-color: rgba(249, 115, 22, 0.25); }
+.badge--info     { background: var(--watchful-fill); color: var(--watchful); border-color: rgba(196, 181, 253, 0.25); }
+.badge--healed   { background: var(--clear-fill); color: var(--clear); border-color: rgba(110, 231, 183, 0.25); }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {

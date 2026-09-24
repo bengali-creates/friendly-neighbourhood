@@ -266,33 +266,33 @@ export default function ChannelsPage() {
   return (
     <div className="flex flex-col gap-6 max-w-5xl">
       {/* Top Banner */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-2 border-black p-5 shadow-[4px_4px_0_#000000] bg-[var(--card-bg)] transition-colors">
+      <div className="rounded-[var(--radius-lg)] bg-[var(--depth)] border border-[var(--rim)] p-5 md:p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 transition-colors">
         <div>
-          <div className="flex items-center gap-2 mb-1">
-            <Radio className="w-6 h-6 text-[var(--sv-magenta)] animate-pulse" />
-            <h1 className="font-['Bangers'] text-3xl md:text-4xl tracking-wide text-[var(--fg)]">
-              RADAR TRANSMITTERS & ALERT CHANNELS
+          <div className="flex items-center gap-2.5 mb-1">
+            <Radio className="w-5 h-5 text-[var(--watchful)] animate-pulse" />
+            <h1 className="text-xl md:text-2xl font-semibold tracking-tight text-[var(--ink-primary)]">
+              Radar Transmitters & Alert Channels
             </h1>
           </div>
-          <p className="text-xs text-[var(--subtext)] font-sans max-w-2xl">
+          <p className="text-xs text-[var(--ink-secondary)] max-w-2xl mt-0.5">
             Route live Spider-Sense signals instantly to your external messaging platforms whenever a product recall or
             detrimental Terms of Service change is detected.
           </p>
         </div>
 
         <div className="flex items-center gap-3">
-          <div className="border-2 border-black px-3 py-1.5 bg-[var(--input-bg)] shadow-[2px_2px_0_#000000] text-xs font-mono">
-            <span className="text-[var(--subtext)]">ACTIVE: </span>
-            <span className="font-bold text-[var(--sv-yellow)]">{activeCount} / 3 ONLINE</span>
+          <div className="rounded-[var(--radius-sm)] border border-[var(--rim)] px-3 py-1.5 bg-[var(--surface)] text-xs font-mono">
+            <span className="text-[var(--ink-tertiary)]">ACTIVE: </span>
+            <span className="font-semibold text-[var(--clear)]">{activeCount} / 3 Online</span>
           </div>
           <Button
-            variant="default"
+            variant="secondary"
             size="sm"
             onClick={() => {
               fetchChannels();
               fetchLogs();
             }}
-            className="border-2 border-black shadow-[2px_2px_0_#000000] gap-1.5"
+            className="gap-1.5 text-xs"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} /> Refresh
           </Button>
@@ -302,28 +302,28 @@ export default function ChannelsPage() {
       {/* Global Status Banner if test executed */}
       {testResult && (
         <div
-          className={`border-2 border-black p-4 shadow-[4px_4px_0_#000000] flex items-center justify-between transition-all ${
+          className={`rounded-[var(--radius-md)] border p-4 flex items-center justify-between transition-all ${
             testResult.success
-              ? "bg-emerald-500/15 border-emerald-600 text-emerald-300"
-              : "bg-red-500/15 border-red-600 text-red-300"
+              ? "bg-[var(--clear-fill)] border-[rgba(110,231,183,0.3)] text-[var(--clear)]"
+              : "bg-[var(--alert-fill)] border-[rgba(248,113,113,0.3)] text-[var(--alert)]"
           }`}
         >
           <div className="flex items-center gap-3">
             {testResult.success ? (
-              <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+              <CheckCircle2 className="w-5 h-5 text-[var(--clear)] shrink-0" />
             ) : (
-              <AlertTriangle className="w-5 h-5 text-red-400 shrink-0" />
+              <AlertTriangle className="w-5 h-5 text-[var(--alert)] shrink-0" />
             )}
             <div>
-              <p className="font-['Bangers'] tracking-wider text-sm uppercase">
+              <p className="font-medium text-xs">
                 {testResult.provider} Transmit Result
               </p>
-              <p className="text-xs font-mono">{testResult.message}</p>
+              <p className="text-xs font-mono mt-0.5">{testResult.message}</p>
             </div>
           </div>
           <button
             onClick={() => setTestResult(null)}
-            className="text-xs font-bold underline cursor-pointer hover:opacity-80"
+            className="text-xs underline cursor-pointer hover:opacity-80"
           >
             Dismiss
           </button>
@@ -333,19 +333,19 @@ export default function ChannelsPage() {
       {/* Grid of 3 Providers */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* PROVIDER 1: WHATSAPP */}
-        <Card className="flex flex-col justify-between border-3 border-black shadow-[5px_5px_0_#000000]">
+        <Card className="flex flex-col justify-between">
           <div>
-            <CardHeader className="pb-3 border-b-2 border-black/10">
+            <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center border-2 border-black">
-                    <MessageSquare className="w-4 h-4 text-emerald-500" />
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-[var(--radius-sm)] bg-[var(--clear-fill)] flex items-center justify-center border border-[rgba(110,231,183,0.25)]">
+                    <MessageSquare className="w-4 h-4 text-[var(--clear)]" />
                   </div>
-                  <CardTitle className="text-lg font-['Bangers'] tracking-wider">WHATSAPP</CardTitle>
+                  <CardTitle className="text-sm font-semibold tracking-tight">WhatsApp</CardTitle>
                 </div>
-                <Badge variant="warning" className="text-[9px]">DEMO / 1K FREE</Badge>
+                <Badge variant="outline" className="text-[9px]">1K Free / Mo</Badge>
               </div>
-              <CardDescription className="text-xs mt-1">
+              <CardDescription className="text-xs mt-1 leading-relaxed">
                 Meta Cloud Graph API v22.0. Direct WhatsApp alerts to personal or test numbers.
               </CardDescription>
             </CardHeader>
@@ -445,19 +445,19 @@ export default function ChannelsPage() {
         </Card>
 
         {/* PROVIDER 2: TELEGRAM */}
-        <Card className="flex flex-col justify-between border-3 border-black shadow-[5px_5px_0_#000000]">
+        <Card className="flex flex-col justify-between">
           <div>
-            <CardHeader className="pb-3 border-b-2 border-black/10">
+            <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-full bg-cyan-500/20 flex items-center justify-center border-2 border-black">
-                    <Bot className="w-4 h-4 text-cyan-400" />
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-[var(--radius-sm)] bg-[var(--watchful-fill)] flex items-center justify-center border border-[rgba(196,181,253,0.3)]">
+                    <Bot className="w-4 h-4 text-[var(--watchful)]" />
                   </div>
-                  <CardTitle className="text-lg font-['Bangers'] tracking-wider">TELEGRAM</CardTitle>
+                  <CardTitle className="text-sm font-semibold tracking-tight">Telegram</CardTitle>
                 </div>
-                <Badge variant="info" className="text-[9px]">100% FREE FOREVER</Badge>
+                <Badge variant="outline" className="text-[9px]">100% Free</Badge>
               </div>
-              <CardDescription className="text-xs mt-1">
+              <CardDescription className="text-xs mt-1 leading-relaxed">
                 Zero fees, unlimited alerts via Telegram Bot API with Markdown styling.
               </CardDescription>
             </CardHeader>
@@ -546,20 +546,20 @@ export default function ChannelsPage() {
         </Card>
 
         {/* PROVIDER 3: DISCORD */}
-        <Card className="flex flex-col justify-between border-3 border-black shadow-[5px_5px_0_#000000]">
+        <Card className="flex flex-col justify-between">
           <div>
-            <CardHeader className="pb-3 border-b-2 border-black/10">
+            <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-full bg-indigo-500/20 flex items-center justify-center border-2 border-black">
-                    <Zap className="w-4 h-4 text-indigo-400" />
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-[var(--radius-sm)] bg-[var(--watchful-fill)] flex items-center justify-center border border-[rgba(196,181,253,0.3)]">
+                    <Zap className="w-4 h-4 text-[var(--watchful)]" />
                   </div>
-                  <CardTitle className="text-lg font-['Bangers'] tracking-wider">DISCORD</CardTitle>
+                  <CardTitle className="text-sm font-semibold tracking-tight">Discord</CardTitle>
                 </div>
-                <Badge variant="success" className="text-[9px]">100% FREE • RICH EMBEDS</Badge>
+                <Badge variant="outline" className="text-[9px]">Webhooks</Badge>
               </div>
-              <CardDescription className="text-xs mt-1">
-                Zero fees, instant webhook delivery with cyberpunk Spider-Sense color-coded cards.
+              <CardDescription className="text-xs mt-1 leading-relaxed">
+                Instant webhook delivery with clean Spider-Sense color-coded cards.
               </CardDescription>
             </CardHeader>
 
@@ -647,21 +647,21 @@ export default function ChannelsPage() {
       </div>
 
       {/* RECENT TRANSMISSION LOGS */}
-      <Card className="border-3 border-black shadow-[5px_5px_0_#000000]">
+      <Card>
         <CardHeader className="flex flex-row items-center justify-between pb-3">
           <div>
-            <CardTitle className="font-['Bangers'] text-xl tracking-wider flex items-center gap-2">
-              <Clock className="w-5 h-5 text-[var(--sv-yellow)]" /> RECENT TRANSMISSION AUDIT LOG
+            <CardTitle className="text-base font-semibold tracking-tight flex items-center gap-2">
+              <Clock className="w-4 h-4 text-[var(--watchful)]" /> Recent Transmission Audit Log
             </CardTitle>
-            <CardDescription className="text-xs">
+            <CardDescription className="text-xs mt-0.5">
               Real-time delivery confirmation records dispatched to WhatsApp, Telegram, and Discord.
             </CardDescription>
           </div>
           <Button
-            variant="default"
+            variant="secondary"
             size="sm"
             onClick={fetchLogs}
-            className="border-2 border-black shadow-[2px_2px_0_#000000] text-xs font-bold"
+            className="text-xs"
           >
             Refresh Logs
           </Button>
