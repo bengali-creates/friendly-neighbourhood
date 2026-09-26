@@ -8,6 +8,7 @@ from typing import TypedDict, Optional, Literal, List, Dict, Any
 from langgraph.graph import StateGraph, END
 from scrapers.engine import ScraperEngine, ScrapedSnapshot
 from scrapers.inhouse import InHouseScraper
+from scrapers.quality import ScrapeQualityScorer
 from brightdata_client import run_bdata_cli, search_google, search_reddit, search_perplexity
 from storage.db import StorageClient
 from llm import ask_gemini
@@ -23,6 +24,8 @@ class AgentState(TypedDict):
     snapshot: Optional[Dict[str, Any]]
     previous_snapshot: Optional[Dict[str, Any]]
     validation_passed: bool
+    quality_score: Optional[float]
+    validation_reason: Optional[str]
     heal_attempts: int
     diff: Optional[Dict[str, Any]]
     severity: Optional[Literal["INFO", "WARNING", "CRITICAL"]]
@@ -102,28 +105,57 @@ async def scrape_node(state: AgentState) -> AgentState:
 
 async def validate_node(state: AgentState) -> AgentState:
     job_id = state.get("job_id")
+    collector_id = state.get("collector_id")
+    url = state.get("url")
+    snapshot = state.get("snapshot")
+
+    if not snapshot:
+        if job_id:
+            try:
+                await StorageClient.update_job_progress(
+                    job_id=job_id,
+                    collector_id=collector_id,
+                    url=url,
+                    status="validating",
+                    progress=50,
+                    current_step="Validation failed: Empty snapshot payload returned",
+                )
+            except Exception:
+                pass
+        return {
+            **state,
+            "validation_passed": False,
+            "quality_score": 0.0,
+            "validation_reason": "No document payload returned from scraper",
+        }
+
+    quality = ScrapeQualityScorer.evaluate(snapshot)
+    passed = quality.passed
+
     if job_id:
         try:
+            step_msg = (
+                f"Document verified (Quality Score: {quality.score:.0f}/100)"
+                if passed
+                else f"Integrity check failed ({quality.score:.0f}/100): {quality.reason}"
+            )
             await StorageClient.update_job_progress(
                 job_id=job_id,
-                collector_id=state.get("collector_id"),
-                url=state.get("url"),
+                collector_id=collector_id,
+                url=url,
                 status="validating",
                 progress=50,
-                current_step="Validating document payload integrity",
+                current_step=step_msg,
             )
         except Exception:
             pass
 
-    snapshot = state.get("snapshot")
-    if not snapshot:
-        return {**state, "validation_passed": False}
-
-    raw_text = snapshot.get("raw_text") or snapshot.get("text") or ""
-    sections = snapshot.get("sections") or {}
-
-    passed = len(raw_text.strip()) > 40 or len(sections) > 0
-    return {**state, "validation_passed": passed}
+    return {
+        **state,
+        "validation_passed": passed,
+        "quality_score": quality.score,
+        "validation_reason": quality.reason,
+    }
 
 
 async def heal_node(state: AgentState) -> AgentState:
@@ -132,6 +164,9 @@ async def heal_node(state: AgentState) -> AgentState:
     attempts = state.get("heal_attempts", 0)
     job_id = state.get("job_id")
     engine = state.get("scrape_engine") or "auto"
+    val_reason = state.get("validation_reason") or "Content below minimum threshold"
+    q_score = state.get("quality_score")
+    score_tag = f" (Score: {q_score:.0f}/100)" if q_score is not None else ""
 
     if job_id:
         try:
@@ -141,12 +176,12 @@ async def heal_node(state: AgentState) -> AgentState:
                 url=url,
                 status="healing",
                 progress=55,
-                current_step=f"Autonomous Self-Healing ({engine}): Re-analyzing DOM selectors...",
+                current_step=f"Autonomous Self-Healing ({engine}): Diagnosing failure{score_tag} — {val_reason[:50]}...",
             )
         except Exception:
             pass
 
-    description = "Validation failed: Extracted document content was empty or below minimum threshold."
+    description = f"Validation failed{score_tag}: {val_reason}."
     heal_type = "extraction"
     resolution = "Dynamic AI selector synthesis"
     new_selector = None
@@ -274,7 +309,13 @@ async def filter_node(state: AgentState) -> AgentState:
                 url_str = state.get("url") or state.get("collector_id") or "target site"
                 msg = f"Scrape complete for {url_str}. Baseline snapshot verified with 0 alterations."
                 await StorageClient.save_notification("Scrape Completed", msg, "scrape_complete", state.get("collector_id"))
-                StorageClient.dispatch_external_notification("Scrape Completed", msg)
+                StorageClient.dispatch_external_notification(
+                    "Scrape Completed",
+                    msg,
+                    severity="INFO",
+                    category=state.get("source_type") or "general",
+                    url=state.get("url"),
+                )
             except Exception:
                 pass
         return {**state, "severity": None}
@@ -424,7 +465,13 @@ SCRIPT:
             sev = state.get("severity") or "WARNING"
             notif_msg = f"{sev} Alert: {alert or 'Policy change detected.'}"
             await StorageClient.save_notification(f"Policy Alert ({sev})", notif_msg, "alert_triggered", state.get("collector_id"))
-            StorageClient.dispatch_external_notification(f"Policy Alert ({sev})", notif_msg, category=state.get("source_type") or "general")
+            StorageClient.dispatch_external_notification(
+                f"Policy Alert ({sev})",
+                notif_msg,
+                severity=sev,
+                category=state.get("source_type") or "general",
+                url=state.get("url"),
+            )
         except Exception:
             pass
 
