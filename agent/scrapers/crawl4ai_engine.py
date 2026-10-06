@@ -1,8 +1,3 @@
-"""
-Crawl4AI Scraper Engine for Spider-Sense.
-Wraps the open-source Crawl4AI framework (AsyncWebCrawler) to provide
-anti-bot stealth, dynamic rendering, and batch sub-page crawling.
-"""
 
 import os
 import json
@@ -12,8 +7,6 @@ from .types import ScrapedSnapshot
 from .inhouse import InHouseScraper
 from storage.db import StorageClient
 from llm import ask_gemini
-
-# Graceful import check in case user installs crawl4ai afterwards
 try:
     from crawl4ai import AsyncWebCrawler, BrowserConfig, CrawlerRunConfig, CacheMode
     HAS_CRAWL4AI = True
@@ -22,10 +15,6 @@ except ImportError:
 
 
 class Crawl4AIScraper:
-    """
-    High-performance, stealth-enabled web crawler powered by Crawl4AI.
-    """
-
     @classmethod
     def is_available(cls) -> bool:
         return HAS_CRAWL4AI
@@ -39,10 +28,6 @@ class Crawl4AIScraper:
         collector_id: Optional[str] = None,
         max_link_depth: int = 2,
     ) -> ScrapedSnapshot:
-        """
-        Scrapes a target URL using Crawl4AI with stealth headers, dynamic rendering,
-        and concurrent linked-document processing.
-        """
         if not HAS_CRAWL4AI:
             print("[Crawl4AIScraper] crawl4ai package not installed. Falling back to InHouseScraper...")
             return await InHouseScraper.scrape(
@@ -92,11 +77,9 @@ class Crawl4AIScraper:
                 if not crawl_res.success:
                     raise RuntimeError(f"Crawl4AI failed for {url}: {crawl_res.error_message}")
 
-                # Extract primary text and title
                 primary_markdown = crawl_res.markdown or crawl_res.cleaned_html or ""
                 page_title = crawl_res.metadata.get("title") or "Crawl4AI Extracted Document"
 
-                # Collect candidate internal links for sub-page crawling
                 internal_links = crawl_res.links.get("internal", []) if hasattr(crawl_res, "links") and isinstance(crawl_res.links, dict) else []
                 for link in internal_links:
                     link_href = link.get("href") if isinstance(link, dict) else str(link)
@@ -107,7 +90,6 @@ class Crawl4AIScraper:
                             if link_href not in found_links:
                                 found_links.append(link_href)
 
-                # Batch crawl linked documents in parallel if requested
                 target_sublinks = found_links[:max_link_depth]
                 if target_sublinks and max_link_depth > 0:
                     if job_id:

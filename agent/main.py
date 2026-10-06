@@ -548,3 +548,55 @@ async def brightdata_webhook(request: Request):
     query_params = dict(request.query_params)
     asyncio.create_task(_process_webhook_payload(raw_bytes, query_params))
     return {"success": True, "message": "Webhook payload received and queued for processing"}
+
+
+class ChannelDispatchRequest(BaseModel):
+    title: str
+    message: str
+    severity: str = "INFO"
+    category: str = "general"
+    url: Optional[str] = None
+    metadata: Optional[dict] = None
+
+class ChannelTestRequest(BaseModel):
+    provider: str
+    config: dict = {}
+    channel_id: Optional[int] = None
+
+@app.post("/channels/dispatch")
+async def dispatch_channel_alert(req: ChannelDispatchRequest):
+    from channels.router import ChannelRouter
+    res = await ChannelRouter.dispatch_alert(
+        title=req.title,
+        message=req.message,
+        severity=req.severity,
+        category=req.category,
+        url=req.url,
+        metadata=req.metadata,
+    )
+    return {"success": True, "data": res}
+
+@app.post("/channels/test")
+async def test_channel_connection(req: ChannelTestRequest):
+    from channels.router import ChannelRouter
+    channel = ChannelRouter.create_channel_instance(
+        provider=req.provider,
+        config=req.config,
+        channel_id=req.channel_id,
+    )
+    if not channel:
+        raise HTTPException(status_code=400, detail=f"Unsupported provider: {req.provider}")
+
+    result = await channel.test_connection()
+    return {"success": result.success, "result": result.model_dump()}
+
+@app.get("/channels/active")
+async def list_active_channels():
+    from channels.router import ChannelRouter
+    channels = await ChannelRouter.load_configured_channels()
+    return {
+        "success": True,
+        "active_count": len(channels),
+        "providers": [c.provider for c in channels],
+    }
+
